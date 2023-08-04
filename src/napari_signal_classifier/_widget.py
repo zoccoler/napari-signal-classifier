@@ -15,14 +15,23 @@ from napari_signal_classifier._classification import train_and_predict_signal_cl
 from napari_signal_classifier._features import get_signal_with_wavelets_features_table
 from napari_signal_classifier._utilities import extract_numbers_with_template
 
+from napari.utils import notifications
+
 if TYPE_CHECKING:
     import napari
 
 
 class Napari_Train_And_Predict_Signal_Classifier(QWidget):
-    def __init__(self, napari_viewer, napari_plotter):
+    def __init__(self, napari_viewer, napari_plotter=None):
         super().__init__()
         self.viewer = napari_viewer
+        if napari_plotter is None:
+            # Get plotter from napari viewer
+            for name, dockwidget, in self.viewer.window._dock_widgets.items():
+                if name.startswith('Signal Selector') and isinstance(
+                        dockwidget.widget(), InteractiveFeaturesLineWidget):
+                    self.plotter = dockwidget.widget()
+                    break
         self.plotter = napari_plotter
         # load the .ui file from the same folder as this python file
         uic.loadUi(Path(__file__).parent / "./_ui/napari_train_and_predict_signal_classfier.ui", self)
@@ -77,6 +86,10 @@ class Napari_Train_And_Predict_Signal_Classifier(QWidget):
         self._wavelet_order_combobox.addItems([str(order) for order in wavelet_order_list])
 
     def _run(self):
+        if self.plotter is None:
+            print('Plotter not found')
+            notifications.show_warning('Plotter not found')
+            return
         selected_items = self._features_multi_select_widget.selectedItems()
         selected_features = []
         if selected_items:
