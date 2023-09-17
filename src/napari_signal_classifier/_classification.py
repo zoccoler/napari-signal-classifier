@@ -1,6 +1,6 @@
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
-from napari_signal_classifier._features import get_signal_features_table
+from napari_signal_classifier._features import get_signal_with_wavelets_features_table
 import joblib
 
 
@@ -20,7 +20,7 @@ def train_signal_classifier(table, classifier_path=None, features_names=[
         columns=x_column_name,
         values=y_column_name)
     # Get signal features table
-    signal_features_table_training = get_signal_features_table(
+    signal_features_table_training = get_signal_with_wavelets_features_table(
         signals_table_training, waveletname, features_names, include_original_signal)
     # Shape data for training
     X_train = signal_features_table_training.iloc[:, 1:]  # remove the first column (the object_id)
@@ -54,7 +54,7 @@ def predict_signal_labels(table, classifier_path, features_names=[
         values=y_column_name)
 
     # Get signal features table
-    signal_features_table = get_signal_features_table(
+    signal_features_table = get_signal_with_wavelets_features_table(
         signals_table, waveletname, features_names, include_original_signal)
     # Shape data for predictions
     X_pred = signal_features_table.iloc[:, 1:]  # remove the first column (the object_id)
