@@ -16,6 +16,7 @@ from napari_signal_classifier._features import get_signal_with_wavelets_features
 from napari_signal_classifier._utilities import extract_numbers_with_template
 
 from napari.utils import notifications
+import napari
 
 if TYPE_CHECKING:
     import napari
@@ -163,4 +164,4 @@ class Napari_Train_And_Predict_Signal_Classifier(QWidget):
         self.plotter.object_id_axis_key = object_id_column_name
 
         # Update plot colors with predictions
-        self.plotter.update_line_layout_from_column(column_name='Predictions', markers=False)
+        self.plotter.update_line_layout_from_column(column_name='Predictions')
