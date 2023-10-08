@@ -7,7 +7,7 @@ from magicgui.widgets import ComboBox
 from pathlib import Path
 from cmap import Colormap
 
-from napari_signal_selector.line import InteractiveFeaturesLineWidget
+from napari_signal_selector.interactive import InteractiveFeaturesLineWidget
 from napari_signal_selector.utilities import get_custom_cat10based_cmap_list
 from napari_skimage_regionprops._parametric_images import relabel_with_map_array
 
