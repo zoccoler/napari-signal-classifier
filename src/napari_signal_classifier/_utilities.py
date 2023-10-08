@@ -44,7 +44,7 @@ def get_frequency_bands(decomp_level, sampling_frequency):
     return fcA, fcD_decomp_level
 
 
-def plot_wavelet_coefficient_decomposition_levels(signals_table, waveletname, sampling_frequency):
+def plot_wavelet_coefficient_decomposition_levels(signals_table, waveletname, sampling_frequency, figsize=(15, 22)):
     import pywt
     import matplotlib.pyplot as plt
     import numpy as np
@@ -56,7 +56,7 @@ def plot_wavelet_coefficient_decomposition_levels(signals_table, waveletname, sa
     frequency_band_list += [get_frequency_bands(level, sampling_frequency)[1]
                             for level in reversed(range(1, max_level_of_decomposition + 1))]
     # Plot
-    fig, ax = plt.subplots(max_level_of_decomposition + 1, 1, figsize=(15, 22))
+    fig, ax = plt.subplots(max_level_of_decomposition + 1, 1, figsize=figsize)
     for i in range(signals_table.shape[0]):
         signal = signals_table.iloc[i, :]
         # Get coefficients
