@@ -29,7 +29,7 @@ class Napari_Train_And_Predict_Signal_Classifier(QWidget):
         if napari_plotter is None:
             # Get plotter from napari viewer
             for name, dockwidget, in self.viewer.window._dock_widgets.items():
-                if name.startswith('Signal Selector') and isinstance(
+                if (name.startswith('Signal Selector') or name == 'InteractiveFeaturesLineWidget') and isinstance(
                         dockwidget.widget(), InteractiveFeaturesLineWidget):
                     self.plotter = dockwidget.widget()
                     break
