@@ -61,27 +61,6 @@ def predict_signal_labels(table, classifier_path,
     return table
 
 
-def train_and_predict_signal_classifier(table, classifier_path=None, 
-                                        x_column_name='frame',
-                                        y_column_name='mean_intensity',
-                                        object_id_column_name='label',
-                                        annotations_column_name='Annotations'):
-    classifier_path = train_signal_classifier(
-        table,
-        classifier_path,
-        x_column_name,
-        y_column_name,
-        object_id_column_name,
-        annotations_column_name)
-    table_with_predictions = predict_signal_labels(
-        table,
-        classifier_path,
-        x_column_name,
-        y_column_name,
-        object_id_column_name)
-    return table_with_predictions, classifier_path
-
-
 if __name__ == '__main__':
     # Load data
     import pandas as pd
