@@ -36,12 +36,14 @@ def train_signal_classifier(table, classifier_path=None,
 def predict_signal_labels(table, classifier_path, 
                           x_column_name='frame',
                           y_column_name='mean_intensity',
-                          object_id_column_name='label',):
+                          object_id_column_name='label',
+                          signal_features_table=None):
     # Get signal features table
-    signal_features_table = get_signal_features(
-        table, column_id=object_id_column_name,
-         column_sort=x_column_name,
-         column_value=y_column_name)
+    if signal_features_table is None:
+        signal_features_table = get_signal_features(
+            table, column_id=object_id_column_name,
+            column_sort=x_column_name,
+            column_value=y_column_name)
     # Get classifier
     classifier = joblib.load(classifier_path)
 
@@ -71,13 +73,13 @@ def train_and_predict_signal_classifier(table, classifier_path=None,
         y_column_name,
         object_id_column_name,
         annotations_column_name)
-    table = predict_signal_labels(
+    table_with_predictions = predict_signal_labels(
         table,
         classifier_path,
         x_column_name,
         y_column_name,
         object_id_column_name)
-    return table, classifier_path
+    return table_with_predictions, classifier_path
 
 
 if __name__ == '__main__':
