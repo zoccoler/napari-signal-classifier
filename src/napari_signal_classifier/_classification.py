@@ -59,38 +59,3 @@ def predict_signal_labels(table, classifier_path,
     table['Predictions'] = predictions.astype(int)
 
     return table
-
-
-if __name__ == '__main__':
-    # Load data
-    import pandas as pd
-    from pathlib import Path
-    from skimage import io
-    import napari
-    from napari_signal_selector.interactive import InteractiveFeaturesLineWidget
-    from napari_signal_classifier._widget import Napari_Train_And_Predict_Signal_Classifier
-
-    parent_path = Path(__file__).parent.parent.parent
-    print(parent_path)
-    table = pd.read_csv(parent_path / 'notebooks/data/signals_annotated.csv')
-    timelapse = io.imread(parent_path / 'notebooks/data/synthetic_image.tif')
-    labels = io.imread(parent_path / 'notebooks/data/synthetic_labels.tif')
-
-    # Create a viewer and add the image
-    viewer = napari.Viewer()
-    viewer.add_image(timelapse, name='timelapse')
-    viewer.add_labels(labels, name='labels', features=table)
-
-    # Create a plotter
-    plotter = InteractiveFeaturesLineWidget(viewer)
-    viewer.window.add_dock_widget(plotter, area='right')
-
-    # Programatically select features and plot
-    plotter.y_axis_key = 'mean_intensity'
-    plotter.x_axis_key = 'frame'
-    plotter.object_id_axis_key = 'label'
-
-    widget = Napari_Train_And_Predict_Signal_Classifier(viewer, plotter)
-    viewer.window.add_dock_widget(widget, area='right', tabify=True)
-
-    napari.run()
