@@ -12,13 +12,35 @@ from napari_skimage_regionprops._parametric_images import relabel_with_map_array
 
 from napari_signal_classifier._classification import train_signal_classifier, predict_signal_labels
 from napari_signal_classifier._features import get_signal_features
+from napari_signal_classifier.shared import RESULTS_TABLES
 
 from napari.utils import notifications
+from napari.qt.threading import thread_worker
 import napari
 
 if TYPE_CHECKING:
     import napari
 
+# # Global variable to store multiple results
+# SIGNAL_FEATURES_TABLE_LIST = []
+
+@thread_worker
+def run_in_thread(table, column_id, column_sort, column_value):
+    # Call the function from the other file
+    return get_signal_features(table, column_id, column_sort, column_value)
+
+# Assign result to the shared global dictionary in the shared module
+def assign_to_variable(result, key):
+    global RESULTS_TABLES
+    RESULTS_TABLES[key] = result
+    print(f"Table with key '{key}' has been processed and stored.")
+    print(result.shape)
+
+# Start worker and assign result with a key
+def start_worker_with_key(key, table, column_id='label', column_sort='frame', column_value='mean_intensity'):
+    worker = run_in_thread(table, column_id, column_sort, column_value)  # create "worker" object
+    worker.returned.connect(lambda result: assign_to_variable(result, key))
+    worker.start()
 
 class Napari_Train_And_Predict_Signal_Classifier(QWidget):
     def __init__(self, napari_viewer, napari_plotter=None):
@@ -88,15 +110,29 @@ class Napari_Train_And_Predict_Signal_Classifier(QWidget):
         table = self._get_layer_by_name(
             self._labels_layer_combobox.currentText()).features
         
-        # Get signal features table
-        signal_features_table = get_signal_features(
-            table, column_id=object_id_column_name,
+        # TODO: Attempting mult-threading
+        # worker = get_signal_features(
+        #     table, column_id=object_id_column_name,
+        #     column_sort=x_column_name,
+        #     column_value=y_column_name)  # create "worker" object
+
+        # worker.returned.connect(signal_features_table)  # connect callback functions
+        # worker.start()  # start the thread!
+
+
+        start_worker_with_key('table1', table, column_id=object_id_column_name,
             column_sort=x_column_name,
             column_value=y_column_name)
+
+        # Get signal features table
+        # signal_features_table = get_signal_features(
+        #     table, column_id=object_id_column_name,
+        #     column_sort=x_column_name,
+        #     column_value=y_column_name)
         labels_data = self._get_layer_by_name(
             self._labels_layer_combobox.currentText()).data
         # Add signal features table as a new labels layer
-        self.viewer.add_labels(labels_data, name='Labels Layer with Signal Features', features=signal_features_table, visible=False)
+        self.viewer.add_labels(labels_data, name='Labels Layer with Signal Features', features=RESULTS_TABLES['table1'], visible=False)
 
         # Train signal classifier
         clssifier_path = train_signal_classifier(
@@ -117,7 +153,7 @@ class Napari_Train_And_Predict_Signal_Classifier(QWidget):
             x_column_name=x_column_name,
             y_column_name=y_column_name,
             object_id_column_name=object_id_column_name,
-            signal_features_table=signal_features_table
+            signal_features_table=RESULTS_TABLES['table1']
         )
 
         # Make new_labels image where each label is replaced by the prediction number

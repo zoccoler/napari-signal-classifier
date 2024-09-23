@@ -1,0 +1,1 @@
+RESULTS_TABLES = {}  # Shared global dictionary
