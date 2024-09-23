@@ -15,6 +15,7 @@ from napari_signal_classifier._features import get_signal_features
 
 from napari.utils import notifications
 import napari
+import time
 
 if TYPE_CHECKING:
     import napari
@@ -68,6 +69,9 @@ class Napari_Train_And_Predict_Signal_Classifier(QWidget):
             layer.events.name.connect(self._reset_combobox_choices)
 
     def _run(self):
+        # Count time of execution
+        start_time = time.time()
+
         if self.plotter is None:
             print('Plotter not found')
             notifications.show_warning('Plotter not found')
@@ -87,17 +91,19 @@ class Napari_Train_And_Predict_Signal_Classifier(QWidget):
         # Get table from selected layer features
         table = self._get_layer_by_name(
             self._labels_layer_combobox.currentText()).features
-        
+        # Get loading table time
+        print("Table loaded in --- %s seconds ---" % (time.time() - start_time))
         # Get signal features table
         signal_features_table = get_signal_features(
             table, column_id=object_id_column_name,
             column_sort=x_column_name,
             column_value=y_column_name)
+        print("Signal features table generated in --- %s seconds ---" % (time.time() - start_time))
         labels_data = self._get_layer_by_name(
             self._labels_layer_combobox.currentText()).data
         # Add signal features table as a new labels layer
         self.viewer.add_labels(labels_data, name='Labels Layer with Signal Features', features=signal_features_table, visible=False)
-
+        print("Signal features table added as a new labels layer in --- %s seconds ---" % (time.time() - start_time))
         # Train signal classifier
         clssifier_path = train_signal_classifier(
             table,
@@ -107,6 +113,7 @@ class Napari_Train_And_Predict_Signal_Classifier(QWidget):
             object_id_column_name=object_id_column_name,
             annotations_column_name=annotations_column_name
         )
+        print("Signal classifier trained in --- %s seconds ---" % (time.time() - start_time))
         # Get absolute path and set it to string
         clssifier_path = Path(clssifier_path).absolute().as_posix()
         self._classifier_path_line_edit.setText(clssifier_path)
@@ -119,12 +126,14 @@ class Napari_Train_And_Predict_Signal_Classifier(QWidget):
             object_id_column_name=object_id_column_name,
             signal_features_table=signal_features_table
         )
+        print("Signal predictions made in --- %s seconds ---" % (time.time() - start_time))
 
         # Make new_labels image where each label is replaced by the prediction number
         label_list = table_with_predictions.groupby(object_id_column_name).first().reset_index()[object_id_column_name].values
         predictions_list = table_with_predictions.groupby(object_id_column_name).first().reset_index()[
             'Predictions'].values.astype('uint8')
         prediction_labels = relabel_with_map_array(labels_data, label_list, predictions_list)
+        print("New labels image generated in --- %s seconds ---" % (time.time() - start_time))
         # Update table with predictions
         self._get_layer_by_name(
             self._labels_layer_combobox.currentText()).features = table_with_predictions
@@ -134,22 +143,28 @@ class Napari_Train_And_Predict_Signal_Classifier(QWidget):
         predition_color_dict = {}
         for i in range(0, len(prediction_cmap.colors)):
             predition_color_dict[i] = prediction_cmap.colors[i]
+        print("Prediction color dict generated in --- %s seconds ---" % (time.time() - start_time))
         self.viewer.add_labels(prediction_labels, name='predictions', color=predition_color_dict)
-
+        print("Prediction labels layer added in --- %s seconds ---" % (time.time() - start_time))
         # Select plotter back
         for name, dockwidget, in self.viewer.window._dock_widgets.items():
             if name == 'InteractiveFeaturesLineWidget':
                 dockwidget.raise_()
                 break
-
+        print("Selection of plotter done in --- %s seconds ---" % (time.time() - start_time))
         # Select back the labels layer
         self.viewer.layers.selection.active = self._get_layer_by_name(
             self._labels_layer_combobox.currentText())
-
+        print("Selection of labels layer done in --- %s seconds ---" % (time.time() - start_time))
         # Re-plot with previous x_axis_key and y_axis_key
         self.plotter.y_axis_key = y_column_name
+        print("y_axis_key set in --- %s seconds ---" % (time.time() - start_time))
         self.plotter.x_axis_key = x_column_name
+        print("x_axis_key set in --- %s seconds ---" % (time.time() - start_time))
         self.plotter.object_id_axis_key = object_id_column_name
+        print("object_id_axis_key set in --- %s seconds ---" % (time.time() - start_time))
 
         # Update plot colors with predictions
         self.plotter.update_line_layout_from_column(column_name='Predictions')
+        print("Plot colors updated in --- %s seconds ---" % (time.time() - start_time))
+
