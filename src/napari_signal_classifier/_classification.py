@@ -135,7 +135,7 @@ def train_sub_signal_classifier(table, classifier_path=None,
     return classifier_path
 
 def generate_sub_signal_templates_from_annotations(table, x_column_name='frame', y_column_name='mean_intensity', object_id_column_name='label', annotations_column_name='Annotations', detrend=False, smooth=0.1):
-    from napari_signal_classifier._sub_signals import extract_sub_signals_by_annotations, generate_templates_by_category
+    from napari_signal_classifier._detection import extract_sub_signals_by_annotations, generate_templates_by_category
     annotations_mask = table[annotations_column_name] != 0
     labels_with_annotations = np.unique(table[annotations_mask][object_id_column_name].values)
     table_training = table[table[object_id_column_name].isin(labels_with_annotations)].sort_values(by=[object_id_column_name, x_column_name]).reset_index(drop=True).iloc[:, 1:]
