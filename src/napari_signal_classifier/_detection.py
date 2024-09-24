@@ -102,7 +102,7 @@ def detect_sub_signal_by_template(composite_signal, template, threshold, return_
     if norm_method == 'minmax':
          # Normalizing cross-correlation by minmax directly
         normalized_corr = normalize(cross_corr, method=norm_method)
-    elif norm_method == 'zscore':
+    elif norm_method == 'zscores':
         # Normalizing cross-correlation by energy of signal and template
         fm2 = signal.correlate(signal_norm**2, np.ones_like(template_norm), mode='same') # Convolution of the squared composite signal with a window of ones
         fm = signal.correlate(signal_norm, np.ones_like(template_norm), mode='same') # Convolution of the composite signal with a window of ones
