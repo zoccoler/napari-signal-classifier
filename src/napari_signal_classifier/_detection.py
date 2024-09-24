@@ -117,7 +117,7 @@ def detect_sub_signal_by_template(composite_signal, template, threshold, return_
     return peaks_indices
 
 def extract_sub_signals_by_templates(df, column_signal_value, column_signal_id, column_frame, sub_signal_templates, threshold, method='zscores'):
-    from napari_signal_classifier import SubSignal, SubSignalCollection
+    from napari_signal_classifier._sub_signals import SubSignal, SubSignalCollection
     sub_signal_collection = SubSignalCollection()
     grouped_by_label = df.groupby(column_signal_id, sort=False) # column_signal_id = 'label'
     for label, sub_table in list(grouped_by_label):
