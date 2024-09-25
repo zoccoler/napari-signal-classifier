@@ -77,12 +77,12 @@ class SubSignalCollection:
     def sort_by_category(self):
         self.sub_signals = sorted(self.sub_signals, key=lambda x: x.category)
 
-    def merge_subsignals(self, threshold):
+    def merge_subsignals(self, overlap_threshold):
         merged = []
         for subsignal in self.sub_signals:
             merged_with_existing = False
             for m in merged:
-                if subsignal.label == m.label and subsignal.overlaps(m, threshold): # and subsignal.category != m.category
+                if subsignal.label == m.label and subsignal.overlaps(m, overlap_threshold): # and subsignal.category != m.category
                     m.merge(subsignal)
                     m.category = f"{m.category}-{subsignal.category}"
                     merged_with_existing = True

@@ -171,7 +171,7 @@ def predict_sub_signal_labels(table, classifier_path,
     sub_signal_collection = extract_sub_signals_by_templates(table, y_column_name, object_id_column_name, x_column_name, sub_signal_templates, threshold)
 
     # Merge sub-signals that overlap by more than overlap (50%by default) (they are likely the same sub_signal detected by different templates)
-    sub_signal_collection.merge_subsignals(overlap=overlap)
+    sub_signal_collection.merge_subsignals(overlap_threshold=overlap)
 
     # Generate sub_signals table (no need to resample them since they were collected via template of fixed length)
     sub_signals_table = generate_sub_signals_table(sub_signal_collection, resample=False)
