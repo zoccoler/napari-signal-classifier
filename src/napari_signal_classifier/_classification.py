@@ -72,7 +72,7 @@ def generate_sub_signals_table(sub_signal_collection, resample=True):
     table_sub_signals = pd.DataFrame([])
     for i, sub_signal in enumerate(sub_signal_collection.sub_signals):
         if resample:
-            sub_table = pd.DataFrame(sub_signal.interpolate_samples(n_samples), columns=['mean_intensity_interpolated'])
+            sub_table = pd.DataFrame(sub_signal.interpolate_samples(n_samples), columns=['mean_intensity'])
             sub_table['frame_resampled'] = np.linspace(sub_signal.start_frame, sub_signal.end_frame, n_samples)
             sub_table['category'] = sub_signal.category
         else:
@@ -88,7 +88,7 @@ def generate_sub_signals_table(sub_signal_collection, resample=True):
         table_sub_signals = pd.concat([table_sub_signals, sub_table], axis=0)
     # Re-order columns
     if resample:
-        table_sub_signals = table_sub_signals[['sub_label', 'frame_resampled', 'mean_intensity_interpolated', 'category', 'original_label', 'original_start_frame', 'original_end_frame']]
+        table_sub_signals = table_sub_signals[['sub_label', 'frame_resampled', 'mean_intensity', 'category', 'original_label', 'original_start_frame', 'original_end_frame']]
     else:
         table_sub_signals = table_sub_signals[['sub_label', 'frame', 'mean_intensity', 'category', 'template_category', 'original_label', 'original_start_frame', 'original_end_frame']]
     return table_sub_signals
@@ -115,7 +115,7 @@ def train_sub_signal_classifier(table, classifier_path=None,
     sub_signal_features_table_training = get_signal_features(
         sub_signals_table_training, column_id='sub_label',
          column_sort='frame_resampled',
-         column_value='mean_intensity_interpolated')
+         column_value='mean_intensity')
     
     # Get annotations
     annotations = [sub_sig.category for sub_sig in sub_signal_collection_train.sub_signals]
