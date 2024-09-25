@@ -25,14 +25,22 @@ class Napari_Train_And_Predict_Signal_Classifier(QWidget):
     def __init__(self, napari_viewer, napari_plotter=None):
         super().__init__()
         self.viewer = napari_viewer
-        if napari_plotter is None:
+        self.plotter = napari_plotter
+        print('Napari Plotter:', napari_plotter)
+        if self.plotter is None:
             # Get plotter from napari viewer or add a new one if not present
             for name, dockwidget, in self.viewer.window._dock_widgets.items():
                 if (name.startswith('Signal Selector') or name == 'InteractiveFeaturesLineWidget') and isinstance(
                         dockwidget.widget(), InteractiveFeaturesLineWidget):
                     self.plotter = dockwidget.widget()
                     break
-        self.plotter = napari_plotter
+            if self.plotter is None:
+                print('Plotter not found! Please open Signal Selector widget first')
+                notifications.show_warning('Plotter not found! Please open Signal Selector widget first')
+
+        print('Plotter:', self.plotter)
+        # self.plotter = napari_plotter
+        # print('Plotter:', self.plotter)
             # if self.plotter is None:
             #     napari_plotter = InteractiveFeaturesLineWidget(self.viewer)
             #     self.viewer.window.add_dock_widget(napari_plotter, area='right', tabify=True)
@@ -174,18 +182,17 @@ class Napari_Train_And_Predict_Sub_Signal_Classifier(QWidget):
     def __init__(self, napari_viewer, napari_plotter=None):
         super().__init__()
         self.viewer = napari_viewer
-        if napari_plotter is None:
+        self.plotter = napari_plotter
+        if self.plotter is None:
             # Get plotter from napari viewer or add a new one if not present
             for name, dockwidget, in self.viewer.window._dock_widgets.items():
                 if (name.startswith('Signal Selector') or name == 'InteractiveFeaturesLineWidget') and isinstance(
                         dockwidget.widget(), InteractiveFeaturesLineWidget):
                     self.plotter = dockwidget.widget()
                     break
-        self.plotter = napari_plotter
-            # if self.plotter is None:
-            #     napari_plotter = InteractiveFeaturesLineWidget(self.viewer)
-            #     self.viewer.window.add_dock_widget(napari_plotter, area='right', tabify=True)
-            #     self.plotter = napari_plotter
+            if self.plotter is None:
+                print('Plotter not found! Please open Signal Selector widget first')
+                notifications.show_warning('Plotter not found! Please open Signal Selector widget first')
         # load the .ui file from the same folder as this python file
         uic.loadUi(Path(__file__).parent / "./_ui/napari_train_and_predict_signal_classfier.ui", self)
 
@@ -268,6 +275,7 @@ class Napari_Train_And_Predict_Sub_Signal_Classifier(QWidget):
         clssifier_path = Path(clssifier_path).absolute().as_posix()
         self._classifier_path_line_edit.setText(clssifier_path)
         # Run predictions
+        print('Classifier path is:', clssifier_path)
         table_with_predictions = predict_sub_signal_labels(
             table,
             classifier_path=clssifier_path,
