@@ -35,8 +35,10 @@ class Napari_Train_And_Predict_Signal_Classifier(QWidget):
                     self.plotter = dockwidget.widget()
                     break
             if self.plotter is None:
-                print('Plotter not found! Please open Signal Selector widget first')
-                notifications.show_warning('Plotter not found! Please open Signal Selector widget first')
+                print('Plotter not found! Openning Signal Selector widget...')
+                notifications.show_warning('Plotter not found! Openning Signal Selector widget...')
+                dock_widget, widget = self.viewer.window.add_plugin_dock_widget(plugin_name='napari-signal-selector', widget_name = 'Signal Selector', tabify=True)
+                self.plotter = widget
 
         print('Plotter:', self.plotter)
         # self.plotter = napari_plotter
@@ -191,8 +193,10 @@ class Napari_Train_And_Predict_Sub_Signal_Classifier(QWidget):
                     self.plotter = dockwidget.widget()
                     break
             if self.plotter is None:
-                print('Plotter not found! Please open Signal Selector widget first')
-                notifications.show_warning('Plotter not found! Please open Signal Selector widget first')
+                print('Plotter not found! Openning Signal Selector widget...')
+                notifications.show_warning('Plotter not found! Openning Signal Selector widget...')
+                dock_widget, widget = self.viewer.window.add_plugin_dock_widget(plugin_name='napari-signal-selector', widget_name = 'Signal Selector', tabify=True)
+                self.plotter = widget
         # load the .ui file from the same folder as this python file
         uic.loadUi(Path(__file__).parent / "./_ui/napari_train_and_predict_signal_classfier.ui", self)
 
