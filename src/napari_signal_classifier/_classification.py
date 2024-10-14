@@ -204,7 +204,8 @@ def predict_sub_signal_labels(table, classifier_path,
     sub_signals_table = sub_signals_table.drop_duplicates(subset=['original_label', 'frame'])
 
     mapped_values = sub_signals_table[['original_label', 'frame']].apply(tuple, axis=1).map(duplicates_reassigned_series)
-    sub_signals_table.loc[:, 'predicted_category'] = mapped_values.combine_first(sub_signals_table['predicted_category'])
+    # Replace NaN values in place with the original values
+    sub_signals_table.loc[:, 'predicted_category'] = mapped_values.reset_index(drop=True).combine_first(sub_signals_table['predicted_category'].reset_index(drop=True))
     sub_signals_table['predicted_category'] = sub_signals_table['predicted_category'].astype(int)
 
     # Add predictions to table
