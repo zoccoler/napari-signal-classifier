@@ -199,7 +199,7 @@ def predict_sub_signal_labels(table, classifier_path,
     # Step 1: Identify Duplicates (places where original_label and frame are the same, but different sub_labels were given)
     duplicates = sub_signals_table[sub_signals_table.duplicated(subset=['original_label', 'frame'], keep=False)]
     # Step 2: Reassign duplicate values
-    duplicates_reassigned_series = duplicates.groupby(['original_label']).apply(reassign_duplicate_values)
+    duplicates_reassigned_series = duplicates.groupby(['original_label']).apply(reassign_duplicate_values, include_groups=False)
 
     sub_signals_table = sub_signals_table.drop_duplicates(subset=['original_label', 'frame'])
 
