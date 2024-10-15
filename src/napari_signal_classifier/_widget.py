@@ -194,7 +194,7 @@ class Napari_Train_And_Predict_Sub_Signal_Classifier(QWidget):
                 self.plotter = widget
         # load the .ui file from the same folder as this python file
         uic.loadUi(Path(__file__).parent /
-                   "./_ui/napari_train_and_predict_signal_classfier.ui", self)
+                   "./_ui/napari_train_and_predict_sub_signal_classfier.ui", self)
 
         self.viewer.layers.events.inserted.connect(
             self._reset_combobox_choices)
