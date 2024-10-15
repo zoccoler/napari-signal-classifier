@@ -203,9 +203,14 @@ def predict_sub_signal_labels(table, classifier_path,
 
     sub_signals_table = sub_signals_table.drop_duplicates(subset=['original_label', 'frame'])
 
-    mapped_values = sub_signals_table[['original_label', 'frame']].apply(tuple, axis=1).map(duplicates_reassigned_series)
-    # Replace NaN values in place with the original values
-    sub_signals_table.loc[:, 'predicted_category'] = mapped_values.reset_index(drop=True).combine_first(sub_signals_table['predicted_category'].reset_index(drop=True))
+    original_frame_and_label_indices = sub_signals_table[['original_label', 'frame']].apply(tuple, axis=1)
+    # This mapping makes a series with the newly assigned categories for the duplicated values and leaves NaNs for the non-duplicated values
+    prediction_series_duplicates_reassigned_only = original_frame_and_label_indices.map(duplicates_reassigned_series)
+    prediction_series_duplicates_reassigned_only.index = original_frame_and_label_indices # Sets the index to the original index of the table_test_set
+    # We get the prediction series, set the index to the original index of the table_test_set and combine it with the 'prediction_series_duplicates_reassigned' to replace the NaNs with the original predictions while keeping the re-assigned values for the duplicates
+    predictions_series = sub_signals_table['predicted_category']
+    predictions_series.index = original_frame_and_label_indices
+    sub_signals_table['predicted_category'] = prediction_series_duplicates_reassigned_only.combine_first(predictions_series).values
     sub_signals_table['predicted_category'] = sub_signals_table['predicted_category'].astype(int)
 
     # Add predictions to table
