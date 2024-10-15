@@ -288,7 +288,7 @@ class Napari_Train_And_Predict_Sub_Signal_Classifier(QWidget):
             prediction_labels = np.stack(
                 [current_labels_layer.data] * len(table[self.plotter.x_axis_key].unique()), axis=0)
         else:
-            prediction_labels = current_labels_layer.data
+            prediction_labels = np.copy(current_labels_layer.data)
         for i in range(prediction_labels.shape[0]):
             prediction_list = table[table[self.plotter.x_axis_key] == i].sort_values(
                 by=self.plotter.object_id_axis_key)['Predictions'].values
