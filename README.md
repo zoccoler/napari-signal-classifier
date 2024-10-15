@@ -9,6 +9,16 @@
 
 A napari plugin that classifies annotated signals stored in a table in the .features of a Labels layer using scikit-learn RandomForest classifier.
 
+# Quick Demo
+
+## Napari Signal Classifier
+
+![demo](./images/signal_classifier_demo.gif)
+
+## Napari Sub-Signal Classifier
+
+![demo](./images/sub_signal_classifier_demo.gif)
+
 ----------------------------------
 
 This [napari] plugin was generated with [Cookiecutter] using [@napari]'s [cookiecutter-napari-plugin] template.
