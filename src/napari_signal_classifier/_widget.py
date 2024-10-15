@@ -263,6 +263,8 @@ class Napari_Train_And_Predict_Sub_Signal_Classifier(QWidget):
             y_column_name=y_column_name,
             object_id_column_name=object_id_column_name,
         )
+        # Update table with predictions
+        current_labels_layer.features = table_with_predictions
         # TODO: make labels layer timelapse with predictions for sub-signals
         # # Make new_labels image where each label is replaced by the prediction number
         # label_list = table_with_predictions.groupby(object_id_column_name).first().reset_index()[object_id_column_name].values
