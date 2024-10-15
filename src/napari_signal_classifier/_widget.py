@@ -7,7 +7,7 @@ from cmap import Colormap
 
 from napari_signal_selector.interactive import InteractiveFeaturesLineWidget
 from nap_plot_tools.cmap import get_custom_cat10based_cmap_list
-from napari_skimage_regionprops._parametric_images import relabel_with_map_array
+from skimage.util import map_array
 
 from napari_signal_classifier._classification import train_signal_classifier, predict_signal_labels, train_sub_signal_classifier, predict_sub_signal_labels
 from napari_signal_classifier._features import get_signal_features
@@ -15,7 +15,7 @@ from napari_signal_classifier._features import get_signal_features
 from napari.utils import notifications
 from napari.utils import DirectLabelColormap
 import napari
-import time
+import numpy as np
 
 if TYPE_CHECKING:
     import napari
@@ -35,20 +35,24 @@ class Napari_Train_And_Predict_Signal_Classifier(QWidget):
                     break
             if self.plotter is None:
                 print('Plotter not found! Openning Signal Selector widget...')
-                notifications.show_warning('Plotter not found! Openning Signal Selector widget...')
-                dock_widget, widget = self.viewer.window.add_plugin_dock_widget(plugin_name='napari-signal-selector', widget_name = 'Signal Selector', tabify=True)
+                notifications.show_warning(
+                    'Plotter not found! Openning Signal Selector widget...')
+                dock_widget, widget = self.viewer.window.add_plugin_dock_widget(
+                    plugin_name='napari-signal-selector', widget_name='Signal Selector', tabify=True)
                 self.plotter = widget
 
         # load the .ui file from the same folder as this python file
-        uic.loadUi(Path(__file__).parent / "./_ui/napari_train_and_predict_signal_classfier.ui", self)
+        uic.loadUi(Path(__file__).parent /
+                   "./_ui/napari_train_and_predict_signal_classfier.ui", self)
 
-        self.viewer.layers.events.inserted.connect(self._reset_combobox_choices)
+        self.viewer.layers.events.inserted.connect(
+            self._reset_combobox_choices)
         self.viewer.layers.events.removed.connect(self._reset_combobox_choices)
 
         self._run_button.clicked.connect(self._run)
         # Populate combobox if there are already layers
         self._reset_combobox_choices()
-        
+
         self.signal_features_in_metadata = True
 
     def _get_labels_layer_with_features(self):
@@ -65,7 +69,8 @@ class Napari_Train_And_Predict_Signal_Classifier(QWidget):
         self._labels_layer_combobox.clear()
         labels_layers = self._get_labels_layer_with_features()
         # Set choices in qt combobox
-        self._labels_layer_combobox.addItems([layer.name for layer in labels_layers])
+        self._labels_layer_combobox.addItems(
+            [layer.name for layer in labels_layers])
         # Link layer name change event to this method
         for layer in labels_layers:
             # Clear previous connections
@@ -127,23 +132,29 @@ class Napari_Train_And_Predict_Signal_Classifier(QWidget):
         )
 
         # Make new_labels image where each label is replaced by the prediction number
-        label_list = table_with_predictions.groupby(object_id_column_name).first().reset_index()[object_id_column_name].values
+        label_list = table_with_predictions.groupby(
+            object_id_column_name).first().reset_index()[object_id_column_name].values
         predictions_list = table_with_predictions.groupby(object_id_column_name).first().reset_index()[
             'Predictions'].values.astype('uint8')
-        prediction_labels = relabel_with_map_array(current_labels_layer.data, label_list, predictions_list)
+        prediction_labels = map_array(np.asarray(current_labels_layer.data),
+                                      np.asarray(label_list),
+                                      np.asarray(predictions_list))
 
         # Update table with predictions
         current_labels_layer.features = table_with_predictions
 
         # Generate predicionts labels layer
-        prediction_cmap = Colormap(get_custom_cat10based_cmap_list()).to_napari()
+        prediction_cmap = Colormap(
+            get_custom_cat10based_cmap_list()).to_napari()
         predition_color_dict = {}
         predition_color_dict[None] = prediction_cmap.colors[0]
         for i in range(0, len(prediction_cmap.colors)):
             predition_color_dict[i] = prediction_cmap.colors[i]
-        prediction_cmap_napari = DirectLabelColormap(color_dict=predition_color_dict)
+        prediction_cmap_napari = DirectLabelColormap(
+            color_dict=predition_color_dict)
         # self.viewer.add_labels(prediction_labels, name='predictions', color=predition_color_dict)
-        self.viewer.add_labels(prediction_labels, name='predictions', colormap=prediction_cmap_napari)
+        self.viewer.add_labels(
+            prediction_labels, name='Signal Predictions', colormap=prediction_cmap_napari, opacity=0.5)
         # Select plotter back
         for name, dockwidget, in self.viewer.window._dock_widgets.items():
             if name == 'InteractiveFeaturesLineWidget':
@@ -162,7 +173,6 @@ class Napari_Train_And_Predict_Signal_Classifier(QWidget):
         self.plotter.show_predictions_button.setChecked(True)
 
 
-
 class Napari_Train_And_Predict_Sub_Signal_Classifier(QWidget):
     def __init__(self, napari_viewer, napari_plotter=None):
         super().__init__()
@@ -177,13 +187,17 @@ class Napari_Train_And_Predict_Sub_Signal_Classifier(QWidget):
                     break
             if self.plotter is None:
                 print('Plotter not found! Openning Signal Selector widget...')
-                notifications.show_warning('Plotter not found! Openning Signal Selector widget...')
-                dock_widget, widget = self.viewer.window.add_plugin_dock_widget(plugin_name='napari-signal-selector', widget_name = 'Signal Selector', tabify=True)
+                notifications.show_warning(
+                    'Plotter not found! Openning Signal Selector widget...')
+                dock_widget, widget = self.viewer.window.add_plugin_dock_widget(
+                    plugin_name='napari-signal-selector', widget_name='Signal Selector', tabify=True)
                 self.plotter = widget
         # load the .ui file from the same folder as this python file
-        uic.loadUi(Path(__file__).parent / "./_ui/napari_train_and_predict_signal_classfier.ui", self)
+        uic.loadUi(Path(__file__).parent /
+                   "./_ui/napari_train_and_predict_signal_classfier.ui", self)
 
-        self.viewer.layers.events.inserted.connect(self._reset_combobox_choices)
+        self.viewer.layers.events.inserted.connect(
+            self._reset_combobox_choices)
         self.viewer.layers.events.removed.connect(self._reset_combobox_choices)
 
         self._run_button.clicked.connect(self._run)
@@ -206,7 +220,8 @@ class Napari_Train_And_Predict_Sub_Signal_Classifier(QWidget):
         self._labels_layer_combobox.clear()
         labels_layers = self._get_labels_layer_with_features()
         # Set choices in qt combobox
-        self._labels_layer_combobox.addItems([layer.name for layer in labels_layers])
+        self._labels_layer_combobox.addItems(
+            [layer.name for layer in labels_layers])
         # Link layer name change event to this method
         for layer in labels_layers:
             # Clear previous connections
@@ -265,29 +280,32 @@ class Napari_Train_And_Predict_Sub_Signal_Classifier(QWidget):
         )
         # Update table with predictions
         current_labels_layer.features = table_with_predictions
-        # TODO: make labels layer timelapse with predictions for sub-signals
-        # # Make new_labels image where each label is replaced by the prediction number
-        # label_list = table_with_predictions.groupby(object_id_column_name).first().reset_index()[object_id_column_name].values
-        # predictions_list = table_with_predictions.groupby(object_id_column_name).first().reset_index()[
-        #     'Predictions'].values.astype('uint8')
-        # prediction_labels = relabel_with_map_array(labels_data, label_list, predictions_list)
-        # print("New labels image generated in --- %s seconds ---" % (time.time() - start_time))
-        # Update table with predictions
-        # self._get_layer_by_name(
-        #     self._labels_layer_combobox.currentText()).features = table_with_predictions
 
-        # # Generate predicionts labels layer
-        #TODO: For sub-signals, we need to generate a new labels layer with a time dimension
-        # prediction_cmap = Colormap(get_custom_cat10based_cmap_list()).to_napari()
-        # predition_color_dict = {}
-        # predition_color_dict[None] = prediction_cmap.colors[0]
-        # for i in range(0, len(prediction_cmap.colors)):
-        #     predition_color_dict[i] = prediction_cmap.colors[i]
-        # prediction_cmap_napari = DirectLabelColormap(color_dict=predition_color_dict)
-        # print("Prediction color dict generated in --- %s seconds ---" % (time.time() - start_time))
-        # # self.viewer.add_labels(prediction_labels, name='predictions', color=predition_color_dict)
-        # self.viewer.add_labels(prediction_labels, name='predictions', colormap=prediction_cmap_napari)
-        # print("Prediction labels layer added in --- %s seconds ---" % (time.time() - start_time))
+        # Generate predicionts labels layer
+        label_list = table.groupby(self.plotter.object_id_axis_key).first().reset_index()[
+            self.plotter.object_id_axis_key].values
+        if len(current_labels_layer.data.shape) == 2:
+            prediction_labels = np.stack(
+                [current_labels_layer.data] * len(table[self.plotter.x_axis_key].unique()), axis=0)
+        else:
+            prediction_labels = current_labels_layer.data
+        for i in range(prediction_labels.shape[0]):
+            prediction_list = table[table[self.plotter.x_axis_key] == i].sort_values(
+                by=self.plotter.object_id_axis_key)['Predictions'].values
+            prediction_labels[i] = map_array(np.asarray(
+                prediction_labels[i]), np.asarray(label_list), np.array(prediction_list))
+
+        prediction_cmap = Colormap(
+            get_custom_cat10based_cmap_list()).to_napari()
+        predition_color_dict = {}
+        predition_color_dict[None] = prediction_cmap.colors[0]
+        for i in range(0, len(prediction_cmap.colors)):
+            predition_color_dict[i] = prediction_cmap.colors[i]
+        prediction_cmap_napari = DirectLabelColormap(
+            color_dict=predition_color_dict)
+        self.viewer.add_labels(
+            prediction_labels, name='Sub-Signal Predictions', colormap=prediction_cmap_napari, opacity=0.5)
+
         # Select plotter back
         for name, dockwidget, in self.viewer.window._dock_widgets.items():
             if name == 'InteractiveFeaturesLineWidget':
@@ -304,4 +322,3 @@ class Napari_Train_And_Predict_Sub_Signal_Classifier(QWidget):
         self.plotter.update_line_layout_from_column(column_name='Predictions')
         self.plotter.show_annotations_button.setChecked(False)
         self.plotter.show_predictions_button.setChecked(True)
-
