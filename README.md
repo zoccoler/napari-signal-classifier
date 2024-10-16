@@ -9,6 +9,20 @@
 
 A napari plugin that classifies annotated signals stored in a table in the .features of a Labels layer using scikit-learn RandomForest classifier.
 
+It also provides a sub-signal classifier that can be used to classify sub-signals inside time-series. First it detects sub-sginals with a template matching algorithm and then classifies them also using scikit-learn RandomForest classifier.
+
+This plugin employs and works in synergy with the [napari-signal-selector plugin](https://github.com/zoccoler/napari-signal-selector?tab=readme-ov-file#napari-signal-selector). Take a look at it to see how to annotate signals in a plotter linked to a napari Labels layer with the .features attribute.
+
+# Quick Demo
+
+## Napari Signal Classifier
+
+![demo](./images/signal_classifier_demo.gif)
+
+## Napari Sub-Signal Classifier
+
+![demo](./images/sub_signal_classifier_demo.gif)
+
 ----------------------------------
 
 This [napari] plugin was generated with [Cookiecutter] using [@napari]'s [cookiecutter-napari-plugin] template.

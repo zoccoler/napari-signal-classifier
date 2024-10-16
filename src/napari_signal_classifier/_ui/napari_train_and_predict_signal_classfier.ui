@@ -13,85 +13,21 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
-     <item>
-      <widget class="QLabel" name="_static_text_features">
-       <property name="text">
-        <string>Features:</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QListWidget" name="_features_multi_select_widget">
-       <property name="selectionMode">
-        <enum>QAbstractItemView::MultiSelection</enum>
-       </property>
-      </widget>
-     </item>
-    </layout>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="1">
+    <widget class="QComboBox" name="_labels_layer_combobox"/>
    </item>
-   <item>
-    <widget class="QCheckBox" name="_include_original_signal_checkbox">
+   <item row="0" column="0">
+    <widget class="QLabel" name="label">
      <property name="text">
-      <string>Include Original Signals</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
+      <string>Labels Layer with Signals Table:</string>
      </property>
     </widget>
    </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_5">
-     <item>
-      <widget class="QLabel" name="_static_text_classifier_path">
-       <property name="text">
-        <string>Classifier Path:</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLineEdit" name="_classifier_path_line_edit"/>
-     </item>
-    </layout>
+   <item row="3" column="1">
+    <widget class="QLineEdit" name="_classifier_path_line_edit"/>
    </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_3">
-     <item>
-      <widget class="QLabel" name="_static_text_wavelet_family">
-       <property name="text">
-        <string>Wavelet:</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QComboBox" name="_wavelet_family_combobox"/>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_4">
-     <item>
-      <widget class="QLabel" name="_static_text_wavelet_order">
-       <property name="text">
-        <string>Wavelet Order:</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QComboBox" name="_wavelet_order_combobox"/>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <widget class="QPushButton" name="_run_button">
-     <property name="text">
-      <string>Run</string>
-     </property>
-    </widget>
-   </item>
-   <item>
+   <item row="5" column="0">
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -103,6 +39,20 @@
       </size>
      </property>
     </spacer>
+   </item>
+   <item row="4" column="0" colspan="2">
+    <widget class="QPushButton" name="_run_button">
+     <property name="text">
+      <string>Run</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>Classifier File Path:</string>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>

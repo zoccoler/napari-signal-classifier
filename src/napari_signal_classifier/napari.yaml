@@ -2,16 +2,26 @@ name: napari-signal-classifier
 display_name: Signal Classifier
 contributions:
   commands:
-    - id: napari-signal-classifier.make_sample_data
-      python_name: napari_signal_classifier._sample_data:make_sample_data
-      title: Open Sample Synthetic Data
     - id: napari-signal-classifier.signal_classifier_qwidget
       python_name: napari_signal_classifier._widget:Napari_Train_And_Predict_Signal_Classifier
       title: Signal Classifier Widget
-  sample_data:
-    - command: napari-signal-classifier.make_sample_data
-      display_name: Signal Classifier
-      key: unique_id.1
+    - id: napari-signal-classifier.sub_signal_classifier_qwidget
+      python_name: napari_signal_classifier._widget:Napari_Train_And_Predict_Sub_Signal_Classifier
+      title: Sub-Signal Classifier Widget
+
   widgets:
     - command: napari-signal-classifier.signal_classifier_qwidget
-      display_name: Napari_Train_And_Predict_Signal_Classifier
+      display_name: Train and Predict Signal Classifier
+    - command: napari-signal-classifier.sub_signal_classifier_qwidget
+      display_name: Train and Predict Sub-Signal Classifier
+
+  menus:
+    napari/layers/classify:
+      - submenu: signals_submenu_2
+    signals_submenu_2:
+      - command: napari-signal-classifier.signal_classifier_qwidget
+      - command: napari-signal-classifier.sub_signal_classifier_qwidget
+
+  submenus:
+    - id: signals_submenu_2
+      label: Signals / Time-Series
