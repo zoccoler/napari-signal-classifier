@@ -17,11 +17,11 @@ This plugin employs and works in synergy with the [napari-signal-selector plugin
 
 ## Napari Signal Classifier
 
-![demo](./images/signal_classifier_demo.gif)
+![demo](https://github.com/zoccoler/napari-signal-classifier/raw/main/images/signal_classifier_demo.gif)
 
 ## Napari Sub-Signal Classifier
 
-![demo](./images/sub_signal_classifier_demo.gif)
+![demo](https://github.com/zoccoler/napari-signal-classifier/raw/main//images/sub_signal_classifier_demo.gif)
 
 ----------------------------------
 
