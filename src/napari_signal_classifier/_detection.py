@@ -4,6 +4,20 @@ from dtaidistance import dtw, preprocessing
 
 
 def normalize(signal, method='zscores'):
+    '''Normalize a signal using the specified method.
+
+    Parameters
+    ----------
+    signal : np.ndarray
+        The input signal to be normalized.
+    method : str, optional
+        The normalization method to use ('zscores' or 'minmax'). Default is 'zscores'.
+
+    Returns
+    -------
+    np.ndarray
+        The normalized signal.
+    '''
     if method == 'zscores':
         return (signal - np.mean(signal)) / np.std(signal)
     elif method == 'minmax':
@@ -13,6 +27,24 @@ def normalize(signal, method='zscores'):
 
 
 def align_signals(reference, signal, detrend=False, smooth=0.1):
+    '''Align a signal to a reference using Dynamic Time Warping (DTW).
+
+    Parameters
+    ----------
+    reference : np.ndarray
+        The reference signal.
+    signal : np.ndarray
+        The signal to be aligned.
+    detrend : bool, optional
+        Whether to detrend the signals before alignment. Default is False.
+    smooth : float, optional
+        Smoothing factor for detrending. Default is 0.1.
+
+    Returns
+    -------
+    np.ndarray
+        The aligned signal.
+    '''
     if detrend:
         signal_warp = preprocessing.differencing(signal, smooth=smooth)
         reference_warp = preprocessing.differencing(reference, smooth=smooth)
@@ -29,33 +61,36 @@ def align_signals(reference, signal, detrend=False, smooth=0.1):
 # Function to generate template from replicates using median signal as reference
 
 
-def generate_template_mean(replicates, plot_results=False, detrend=False, smooth=0.1):
+def generate_template_mean(replicates, detrend=False, smooth=0.1):
+    '''Generate a template signal from a list of replicates using mean alignment.
 
+    Parameters
+    ----------
+    replicates : list of np.ndarray
+        List of signal replicates.
+    detrend : bool, optional
+        Whether to detrend the signals before alignment. Default is False.
+    smooth : float, optional
+        Smoothing factor for detrending. Default is 0.1.
+    
+    Returns
+    -------
+    np.ndarray
+        The generated template signal.
+    '''
     # Use the median signal as the initial reference
     median_signal = np.median(replicates, axis=0)
 
     # Align all replicates to the median signal
     aligned_replicates = [align_signals(
         median_signal, rep, detrend, smooth) for rep in replicates]
-    # Optionally plot alignment results
-    # if plot_results:
-    #     fig, ax = plt.subplots()
-    #     for i, arep, rep in zip(range(len(aligned_replicates)), aligned_replicates, replicates):
-    #         if i != len(aligned_replicates) - 1:
-    #             ax.plot(rep, alpha=0.5, color='gray')
-    #             ax.plot(arep, alpha=0.5, color='cyan')
-    #         else:
-    #             ax.plot(rep, alpha=0.5, color='gray', label='replicate')
-    #             ax.plot(arep, alpha=0.5, color='cyan', label='aligned_replicate')
+
     # Compute the average to form the template
     template = np.mean(aligned_replicates, axis=0)
-    # if plot_results:
-    #     ax.plot(template, alpha=0.5, color='magenta', label='template_mean', lw=4)
-    #     plt.legend()
     return template
 
 
-def generate_templates_by_category(sub_signal_collection, plot_results=False, detrend=False, smooth=0.1):
+def generate_templates_by_category(sub_signal_collection, detrend=False, smooth=0.1):
     """
     Generate templates by category from a list of SignalSegment objects.
 
@@ -80,7 +115,7 @@ def generate_templates_by_category(sub_signal_collection, plot_results=False, de
             # If the category changes, process the current category
             if sub_signals_with_current_category:
                 template = generate_template_mean(
-                    sub_signals_with_current_category, plot_results, detrend, smooth)
+                    sub_signals_with_current_category, detrend, smooth)
                 templates_by_category[current_category] = template
                 sub_signals_with_current_category = []
 
@@ -96,13 +131,35 @@ def generate_templates_by_category(sub_signal_collection, plot_results=False, de
     # Process the last category
     if sub_signals_with_current_category:
         template = generate_template_mean(
-            sub_signals_with_current_category, plot_results, detrend, smooth)
+            sub_signals_with_current_category, detrend, smooth)
         templates_by_category[current_category] = template
 
     return templates_by_category
 
 
 def detect_sub_signal_by_template(composite_signal, template, threshold, return_cross_corr=False, norm_method='zscores'):
+    '''Detect sub-signals in a composite signal using cross-correlation with a template.
+
+    Parameters
+    ----------
+    composite_signal : np.ndarray
+        The composite signal in which to detect sub-signals.
+    template : np.ndarray
+        The template signal to use for detection.
+    threshold : float
+        The threshold for peak detection as a fraction of the maximum cross-correlation value.
+    return_cross_corr : bool, optional
+        Whether to return the cross-correlation array along with peak indices. Default is False.
+    norm_method : str, optional
+        The normalization method to use ('zscores' or 'minmax'). Default is 'zscores'.
+    
+    Returns
+    -------
+    peaks_indices : np.ndarray
+        Indices of detected peaks in the composite signal.
+    normalized_corr : np.ndarray, optional
+        The normalized cross-correlation array (returned if return_cross_corr is True).
+    '''
     from scipy import signal
     signal_norm = normalize(composite_signal, method=norm_method)
     template_norm = normalize(template, method=norm_method)
@@ -132,6 +189,30 @@ def detect_sub_signal_by_template(composite_signal, template, threshold, return_
 
 
 def extract_sub_signals_by_templates(df, column_signal_value, column_signal_id, column_frame, sub_signal_templates, threshold, method='zscores'):
+    '''Extract sub-signals from composite signals in a DataFrame using provided templates.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Input DataFrame containing composite signals in long format.
+    column_signal_value : str
+        Column name containing the composite signal values.
+    column_signal_id : str
+        Column name containing the signal ID (usually the label from image).
+    column_frame : str
+        Column name containing the frame information (time).
+    sub_signal_templates : dict
+        Dictionary of sub-signal templates by category.
+    threshold : float
+        Threshold for peak detection as a fraction of the maximum cross-correlation value.
+    method : str, optional
+        Normalization method to use ('zscores' or 'minmax'). Default is 'zscores'.
+    
+    Returns
+    -------
+    SubSignalCollection
+        A collection of extracted sub-signals.
+    '''
     from napari_signal_classifier._sub_signals import SubSignal, SubSignalCollection
     sub_signal_collection = SubSignalCollection()
     # column_signal_id = 'label'
