@@ -12,6 +12,30 @@ def train_signal_classifier(table, classifier_path=None,
                             object_id_column_name='label',
                             annotations_column_name='Annotations',
                             random_state=None):
+    '''Train a signal classifier using annotated signals in the table.
+
+    Parameters
+    ----------
+    table : pd.DataFrame
+        Input table containing time-series data in long format.
+    classifier_path : str, optional
+        Path to save the trained classifier (default is None).
+    x_column_name : str, optional
+        Column name for sorting time points within each time-series (default is 'frame').
+    y_column_name : str, optional
+        Column name containing the time-series values (default is 'mean_intensity').
+    object_id_column_name : str, optional
+        Column name identifying different time-series (default is 'label').
+    annotations_column_name : str, optional
+        Column name containing the annotations for training (default is 'Annotations').
+    random_state : int, optional
+        Random state for reproducibility (default is None).
+    
+    Returns
+    -------
+    classifier_path : str
+        Path where the trained classifier is saved.
+    '''
     # Get training data
     table_training = table[table[annotations_column_name] > 0]
     # Get signal features table
@@ -33,6 +57,7 @@ def train_signal_classifier(table, classifier_path=None,
 
     classifier.fit(signal_features_table_training, annotations)
     train_score = classifier.score(signal_features_table_training, annotations)
+    # TODO: Report train_score somewhere
     joblib.dump(classifier, classifier_path)
     return classifier_path
 
@@ -43,7 +68,30 @@ def predict_signal_labels(table, classifier_path,
                           object_id_column_name='label',
                           predictions_column_name='Predictions',
                           signal_features_table=None):
+    '''Predict signal labels using a trained classifier.
 
+    Parameters
+    ----------
+    table : pd.DataFrame
+        Input table containing time-series data in long format.
+    classifier_path : str
+        Path to the trained classifier.
+    x_column_name : str, optional
+        Column name for sorting time points within each time-series (default is 'frame').
+    y_column_name : str, optional
+        Column name containing the time-series values (default is 'mean_intensity').
+    object_id_column_name : str, optional
+        Column name identifying different time-series (default is 'label').
+    predictions_column_name : str, optional
+        Column name to store the predictions (default is 'Predictions').
+    signal_features_table : pd.DataFrame, optional
+        Pre-computed signal features table (default is None).
+
+    Returns
+    -------
+    table : pd.DataFrame
+        Input table with an additional column for predictions.
+    '''
     # Get signal features table
     if signal_features_table is None:
         signal_features_table = get_signal_features(
@@ -68,6 +116,20 @@ def predict_signal_labels(table, classifier_path,
 
 
 def generate_sub_signals_table(sub_signal_collection, resample=True):
+    '''Generate a table from a collection of sub-signals.
+
+    Parameters
+    ----------
+    sub_signal_collection : SubSignalCollection
+        Collection of sub-signals.
+    resample : bool, optional
+        Whether to resample all sub-signals to the same number of samples (default is True).
+
+    Returns
+    -------
+    table_sub_signals : pd.DataFrame
+        Table containing the sub-signals data.
+    '''
     # Get max number of samples in sub-signals
     n_samples = max(sub_signal_collection.max_length_per_category.values())
     # Resample all sub-signals to the same number of samples
@@ -108,13 +170,37 @@ def train_sub_signal_classifier(table, classifier_path=None,
                                 object_id_column_name='label',
                                 annotations_column_name='Annotations',
                                 random_state=None):
+    '''Train a sub-signal classifier using annotated sub-signals in the table.
+
+    Parameters
+    ----------
+    table : pd.DataFrame
+        Input table containing time-series data in long format.
+    classifier_path : str, optional
+        Path to save the trained classifier (default is None).
+    x_column_name : str, optional
+        Column name for sorting time points within each time-series (default is 'frame').
+    y_column_name : str, optional
+        Column name containing the time-series values (default is 'mean_intensity').
+    object_id_column_name : str, optional
+        Column name identifying different time-series (default is 'label').
+    annotations_column_name : str, optional
+        Column name containing the annotations for training (default is 'Annotations').
+    random_state : int, optional
+        Random state for reproducibility (default is None).
+    
+    Returns
+    -------
+    classifier_path : str
+        Path where the trained classifier is saved.
+    '''
     from napari_signal_classifier._sub_signals import extract_sub_signals_by_annotations
     # Get training data
     annotations_mask = table[annotations_column_name] != 0
     labels_with_annotations = np.unique(
         table[annotations_mask][object_id_column_name].values)
     table_training = table[table[object_id_column_name].isin(labels_with_annotations)].sort_values(
-        by=[object_id_column_name, x_column_name]).reset_index(drop=True).iloc[:, 1:]
+        by=[object_id_column_name, x_column_name]).reset_index(drop=True)
 
     # Extract sub-signals
     sub_signal_collection_train = extract_sub_signals_by_annotations(
@@ -151,13 +237,37 @@ def train_sub_signal_classifier(table, classifier_path=None,
 
 
 def generate_sub_signal_templates_from_annotations(table, x_column_name='frame', y_column_name='mean_intensity', object_id_column_name='label', annotations_column_name='Annotations', detrend=False, smooth=0.1):
+    '''Generate sub-signal templates from annotated sub-signals in the table.
+
+    Parameters
+    ----------
+    table : pd.DataFrame
+        Input table containing time-series data in long format.
+    x_column_name : str, optional
+        Column name for sorting time points within each time-series (default is 'frame').
+    y_column_name : str, optional
+        Column name containing the time-series values (default is 'mean_intensity').
+    object_id_column_name : str, optional
+        Column name identifying different time-series (default is 'label').
+    annotations_column_name : str, optional
+        Column name containing the annotations for training (default is 'Annotations').
+    detrend : bool, optional
+        Whether to detrend the sub-signals when generating templates (default is False).
+    smooth : float, optional
+        Smoothing factor to apply when generating templates (default is 0.1).
+    
+    Returns
+    -------
+    sub_signal_templates : dict
+        Dictionary containing the generated sub-signal templates by category.
+    '''
     from napari_signal_classifier._detection import generate_templates_by_category
     from napari_signal_classifier._sub_signals import extract_sub_signals_by_annotations
     annotations_mask = table[annotations_column_name] != 0
     labels_with_annotations = np.unique(
         table[annotations_mask][object_id_column_name].values)
     table_training = table[table[object_id_column_name].isin(labels_with_annotations)].sort_values(
-        by=[object_id_column_name, x_column_name]).reset_index(drop=True).iloc[:, 1:]
+        by=[object_id_column_name, x_column_name]).reset_index(drop=True)
 
     # Extract sub-signals by anntations
     sub_signal_collection_train = extract_sub_signals_by_annotations(
@@ -180,6 +290,42 @@ def predict_sub_signal_labels(table, classifier_path,
                               overlap=0.5,
                               detrend=False,
                               smooth=0.1):
+    '''Predict sub-signal labels using a trained sub-signal classifier.
+
+    Parameters
+    ----------
+    table : pd.DataFrame
+        Input table containing time-series data in long format.
+    classifier_path : str
+        Path to the trained sub-signal classifier.
+    x_column_name : str, optional
+        Column name for sorting time points within each time-series (default is 'frame').
+    y_column_name : str, optional
+        Column name containing the time-series values (default is 'mean_intensity').
+    object_id_column_name : str, optional
+        Column name identifying different time-series (default is 'label').
+    annotations_column_name : str, optional
+        Column name containing the annotations for training (default is 'Annotations').
+    predictions_column_name : str, optional
+        Column name to store the predictions (default is 'Predictions').
+    threshold : float, optional
+        Similarity threshold for sub-signal detection (default is 0.8).
+    sub_signal_templates : dict, optional
+        Pre-computed sub-signal templates (default is None).
+    sub_signal_features_table : pd.DataFrame, optional
+        Pre-computed sub-signal features table (default is None).
+    overlap : float, optional
+        Overlap threshold for merging sub-signals (default is 0.5).
+    detrend : bool, optional
+        Whether to detrend the sub-signals when generating templates (default is False).
+    smooth : float, optional
+        Smoothing factor to apply when generating templates (default is 0.1).
+    
+    Returns
+    -------
+    table : pd.DataFrame
+        Input table with an additional column for predictions.
+    '''
     from napari_signal_classifier._detection import extract_sub_signals_by_templates
     # Generate sub-signal templates if not provided
     if sub_signal_templates is None:
@@ -229,7 +375,7 @@ def predict_sub_signal_labels(table, classifier_path,
         subset=['original_label', 'frame'], keep=False)]
     # Step 2: Reassign duplicate values
     duplicates_reassigned_series = duplicates.groupby(['original_label']).apply(
-        reassign_duplicate_values, include_groups=False)
+        _reassign_duplicate_values, include_groups=False)
 
     sub_signals_table = sub_signals_table.drop_duplicates(
         subset=['original_label', 'frame'])
@@ -260,7 +406,19 @@ def predict_sub_signal_labels(table, classifier_path,
     return table
 
 
-def reassign_duplicate_values(table):
+def _reassign_duplicate_values(table):
+    '''Reassign duplicate values in the 'predicted_category' of a table, first half with first value, second half with last value.
+
+    Parameters
+    ----------
+    table : pd.DataFrame
+        Input table containing duplicate entries.
+    
+    Returns
+    -------
+    pd.Series
+        Series with reassigned values.
+    '''
     categories = table['predicted_category'].values
     left_value = categories[0]
     right_value = categories[-1]
