@@ -1,4 +1,6 @@
 def make_list_of_coefficients_names(waveletname, max_level_of_decomposition):
+    '''Create a list of wavelet coefficient names based on the wavelet name and maximum level of decomposition.
+    '''
     list_coefficients_names = [waveletname +
                                '_cA_' + str(max_level_of_decomposition)]
     list_coefficients_names += [waveletname + '_cD_' +
@@ -42,6 +44,8 @@ def extract_numbers_with_template(data_list, template):
 
 
 def get_frequency_bands(decomp_level, sampling_frequency):
+    '''Get frequency bands for approximation and detail coefficients at a given decomposition level.
+    '''
     fcA = [0, (sampling_frequency / (2**(decomp_level + 1)))]
     fcD_decomp_level = [(sampling_frequency / (2**(decomp_level + 1))),
                         (sampling_frequency / (2**(decomp_level)))]
@@ -49,6 +53,26 @@ def get_frequency_bands(decomp_level, sampling_frequency):
 
 
 def plot_wavelet_coefficient_decomposition_levels(signals_table, waveletname, sampling_frequency, figsize=(15, 22)):
+    '''Plot wavelet coefficient decomposition levels for a set of signals.
+    
+    Parameters
+    ----------
+    signals_table : pd.DataFrame
+        DataFrame containing the signals to be decomposed.
+    waveletname : str
+        Name of the wavelet to be used for decomposition.
+    sampling_frequency : float
+        Sampling frequency of the signals.
+    figsize : tuple, optional
+        Figure size for the plot (default is (15, 22)).
+    
+    Returns
+    -------
+    fig : matplotlib.figure.Figure
+        The figure object containing the plots.
+    ax : np.ndarray
+        Array of axes objects for the plots.
+    '''
     import pywt
     import matplotlib.pyplot as plt
     import numpy as np
