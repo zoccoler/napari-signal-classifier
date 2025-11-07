@@ -38,7 +38,7 @@ class Napari_Train_And_Predict_Signal_Classifier(QWidget):
                 notifications.show_warning(
                     'Plotter not found! Openning Signal Selector widget...')
                 dock_widget, widget = self.viewer.window.add_plugin_dock_widget(
-                    plugin_name='napari-signal-selector', widget_name='Signal Selector', tabify=True)
+                    plugin_name='napari-signal-selector', widget_name='Signal Selector and Annotator', tabify=True)
                 self.plotter = widget
 
         # load the .ui file from the same folder as this python file
@@ -190,7 +190,7 @@ class Napari_Train_And_Predict_Sub_Signal_Classifier(QWidget):
                 notifications.show_warning(
                     'Plotter not found! Openning Signal Selector widget...')
                 dock_widget, widget = self.viewer.window.add_plugin_dock_widget(
-                    plugin_name='napari-signal-selector', widget_name='Signal Selector', tabify=True)
+                    plugin_name='napari-signal-selector', widget_name='Signal Selector and Annotator', tabify=True)
                 self.plotter = widget
         # load the .ui file from the same folder as this python file
         uic.loadUi(Path(__file__).parent /
