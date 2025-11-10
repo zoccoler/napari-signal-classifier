@@ -58,11 +58,9 @@ def align_signals(reference, signal, detrend=False, smooth=0.1):
         aligned_signal[i] = signal[j]
     return aligned_signal
 
-# Function to generate template from replicates using median signal as reference
-
 
 def generate_template_mean(replicates, detrend=False, smooth=0.1):
-    '''Generate a template signal from a list of replicates using mean alignment.
+    '''Generate a template signal from a list of replicates using median alignment.
 
     Parameters
     ----------
@@ -215,7 +213,6 @@ def extract_sub_signals_by_templates(df, column_signal_value, column_signal_id, 
     '''
     from napari_signal_classifier._sub_signals import SubSignal, SubSignalCollection
     sub_signal_collection = SubSignalCollection()
-    # column_signal_id = 'label'
     grouped_by_label = df.groupby(column_signal_id, sort=False)
     for label, sub_table in list(grouped_by_label):
         # column_signal_value = 'mean_intensity'

@@ -152,7 +152,6 @@ class Napari_Train_And_Predict_Signal_Classifier(QWidget):
             predition_color_dict[i] = prediction_cmap.colors[i]
         prediction_cmap_napari = DirectLabelColormap(
             color_dict=predition_color_dict)
-        # self.viewer.add_labels(prediction_labels, name='predictions', color=predition_color_dict)
         self.viewer.add_labels(
             prediction_labels, name='Signal Predictions', colormap=prediction_cmap_napari, opacity=0.5)
         # Select plotter back

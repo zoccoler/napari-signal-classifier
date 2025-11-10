@@ -232,6 +232,7 @@ def train_sub_signal_classifier(table, classifier_path=None,
     classifier.fit(sub_signal_features_table_training, annotations)
     train_score = classifier.score(
         sub_signal_features_table_training, annotations)
+    print(f"Training score: {train_score:.4f}")
     joblib.dump(classifier, classifier_path)
     return classifier_path
 
