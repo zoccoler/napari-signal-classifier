@@ -124,7 +124,7 @@ class Napari_Train_And_Predict_Signal_Classifier(QWidget):
         # Run predictions
         table_with_predictions = predict_signal_labels(
             table,
-            classifier_path=clssifier_path,
+            classifier_file_path=clssifier_path,
             x_column_name=x_column_name,
             y_column_name=y_column_name,
             object_id_column_name=object_id_column_name,
@@ -272,7 +272,7 @@ class Napari_Train_And_Predict_Sub_Signal_Classifier(QWidget):
         print('Classifier path is:', clssifier_path)
         table_with_predictions = predict_sub_signal_labels(
             table,
-            classifier_path=clssifier_path,
+            classifier_file_path=clssifier_path,
             x_column_name=x_column_name,
             y_column_name=y_column_name,
             object_id_column_name=object_id_column_name,

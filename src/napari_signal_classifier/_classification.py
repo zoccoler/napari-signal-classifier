@@ -1,3 +1,4 @@
+from pathlib import Path
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
@@ -33,7 +34,7 @@ def train_signal_classifier(table, classifier_path=None,
     
     Returns
     -------
-    classifier_path : str
+    classifier_file_path : str
         Path where the trained classifier is saved.
     '''
     # Get training data
@@ -47,22 +48,29 @@ def train_signal_classifier(table, classifier_path=None,
     annotations = table_training.groupby(object_id_column_name).first()[
         'Annotations'].values
     # Train classifier with training set
-    if classifier_path is None or classifier_path == '':
-        # TODO: remove fixed random state
+    # TODO: remove fixed random state
+    if random_state is None:
         random_state = 42
-        classifier = RandomForestClassifier(random_state=random_state)
-        classifier_path = 'signal_classifier.pkl'
-    else:
-        classifier = joblib.load(classifier_path)
+    classifier = RandomForestClassifier(random_state=random_state)
+    
+    if classifier_path is None or classifier_path == '':
+        # Create a classifier file path with a unique name
+        classifier_folder_path = Path.cwd()
+        base_name = 'signal_classifier'
+        classifier_file_path = classifier_folder_path / f'{base_name}.pkl'
+        counter = 1
+        while classifier_file_path.exists():
+            classifier_file_path = classifier_folder_path / f'{base_name}_{counter}.pkl'
+            counter += 1
 
     classifier.fit(signal_features_table_training, annotations)
     train_score = classifier.score(signal_features_table_training, annotations)
     # TODO: Report train_score somewhere
-    joblib.dump(classifier, classifier_path)
-    return classifier_path
+    joblib.dump(classifier, classifier_file_path)
+    return classifier_file_path
 
 
-def predict_signal_labels(table, classifier_path,
+def predict_signal_labels(table, classifier_file_path,
                           x_column_name='frame',
                           y_column_name='mean_intensity',
                           object_id_column_name='label',
@@ -74,7 +82,7 @@ def predict_signal_labels(table, classifier_path,
     ----------
     table : pd.DataFrame
         Input table containing time-series data in long format.
-    classifier_path : str
+    classifier_file_path : str
         Path to the trained classifier.
     x_column_name : str, optional
         Column name for sorting time points within each time-series (default is 'frame').
@@ -99,7 +107,7 @@ def predict_signal_labels(table, classifier_path,
             column_sort=x_column_name,
             column_value=y_column_name)
     # Get classifier
-    classifier = joblib.load(classifier_path)
+    classifier = joblib.load(classifier_file_path)
 
     # Run predictions on all signals
     predictions = classifier.predict(signal_features_table)
@@ -191,7 +199,7 @@ def train_sub_signal_classifier(table, classifier_path=None,
     
     Returns
     -------
-    classifier_path : str
+    classifier_file_path : str
         Path where the trained classifier is saved.
     '''
     from napari_signal_classifier._sub_signals import extract_sub_signals_by_annotations
@@ -220,21 +228,26 @@ def train_sub_signal_classifier(table, classifier_path=None,
     annotations = [
         sub_sig.category for sub_sig in sub_signal_collection_train.sub_signals]
 
-    # Train classifier with training set
-    if classifier_path is None or classifier_path == '':
-        # TODO: remove fixed random state
+    if random_state is None:
         random_state = 42
-        classifier = RandomForestClassifier(random_state=random_state)
-        classifier_path = 'sub_signal_classifier.pkl'
-    else:
-        classifier = joblib.load(classifier_path)
+    classifier = RandomForestClassifier(random_state=random_state)
+    
+    if classifier_path is None or classifier_path == '':
+        # Create a classifier file path with a unique name
+        classifier_folder_path = Path.cwd()
+        base_name = 'sub_signal_classifier'
+        classifier_file_path = classifier_folder_path / f'{base_name}.pkl'
+        counter = 1
+        while classifier_file_path.exists():
+            classifier_file_path = classifier_folder_path / f'{base_name}_{counter}.pkl'
+            counter += 1
 
     classifier.fit(sub_signal_features_table_training, annotations)
     train_score = classifier.score(
         sub_signal_features_table_training, annotations)
     print(f"Training score: {train_score:.4f}")
-    joblib.dump(classifier, classifier_path)
-    return classifier_path
+    joblib.dump(classifier, classifier_file_path)
+    return classifier_file_path
 
 
 def generate_sub_signal_templates_from_annotations(table, x_column_name='frame', y_column_name='mean_intensity', object_id_column_name='label', annotations_column_name='Annotations', detrend=False, smooth=0.1):
@@ -275,11 +288,11 @@ def generate_sub_signal_templates_from_annotations(table, x_column_name='frame',
         table_training, y_column_name, object_id_column_name, annotations_column_name, x_column_name)
     # Generate sub-signal templates
     sub_signal_templates = generate_templates_by_category(
-        sub_signal_collection_train, plot_results=False, detrend=detrend, smooth=smooth)
+        sub_signal_collection_train, detrend=detrend, smooth=smooth)
     return sub_signal_templates
 
 
-def predict_sub_signal_labels(table, classifier_path,
+def predict_sub_signal_labels(table, classifier_file_path,
                               x_column_name='frame',
                               y_column_name='mean_intensity',
                               object_id_column_name='label',
@@ -297,7 +310,7 @@ def predict_sub_signal_labels(table, classifier_path,
     ----------
     table : pd.DataFrame
         Input table containing time-series data in long format.
-    classifier_path : str
+    classifier_file_path : str
         Path to the trained sub-signal classifier.
     x_column_name : str, optional
         Column name for sorting time points within each time-series (default is 'frame').
@@ -356,7 +369,7 @@ def predict_sub_signal_labels(table, classifier_path,
             column_value='mean_intensity')
 
     # Load classifier
-    classifier = joblib.load(classifier_path)
+    classifier = joblib.load(classifier_file_path)
 
     # Run predictions on all sub_signals and add them to the table
     predictions = classifier.predict(sub_signal_features_table)
