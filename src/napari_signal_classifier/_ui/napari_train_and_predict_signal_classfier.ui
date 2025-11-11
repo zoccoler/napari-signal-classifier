@@ -20,7 +20,7 @@
    <item row="7" column="0" colspan="2">
     <widget class="QPushButton" name="_run_qpushbutton">
      <property name="text">
-      <string>Run</string>
+      <string>Train and Predict</string>
      </property>
     </widget>
    </item>
