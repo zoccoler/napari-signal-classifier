@@ -49,11 +49,19 @@ class Napari_Train_And_Predict_Signal_Classifier(QWidget):
             self._reset_combobox_choices)
         self.viewer.layers.events.removed.connect(self._reset_combobox_choices)
 
-        self._run_button.clicked.connect(self._run)
+        self._run_qpushbutton.clicked.connect(self._run)
+        
+        # Connect classifier type combobox to update widget visibility
+        self._classifier_type_qcombobox.currentTextChanged.connect(
+            self._on_classifier_type_changed)
+        
         # Populate combobox if there are already layers
         self._reset_combobox_choices()
 
         self.signal_features_in_metadata = True
+        
+        # Initialize widget visibility based on selected classifier
+        self._on_classifier_type_changed(self._classifier_type_qcombobox.currentText())
 
     def _get_labels_layer_with_features(self):
         '''Get selected labels layer'''
@@ -64,12 +72,45 @@ class Napari_Train_And_Predict_Signal_Classifier(QWidget):
         '''Get layer by name'''
         return [layer for layer in self.viewer.layers if layer.name == layer_name][0]
 
+    def _on_classifier_type_changed(self, classifier_type):
+        '''Update widget visibility based on selected classifier type.
+        
+        Parameters
+        ----------
+        classifier_type : str
+            The type of classifier selected (e.g., 'RandomForest').
+        '''
+        # Define which widgets are visible for each classifier type
+        classifier_widgets = {
+            'RandomForest': [
+                (self._classifier_path_qlineedit, self._classifier_path_qlabel),
+                (self._n_trees_qspinbox, self._n_trees_qlabel),
+                (self._random_state_qspinbox, self._random_state_qlabel)
+            ],
+            # Future classifier types will be added here
+        }
+        
+        # Hide all classifier-specific widgets first
+        all_widget_pairs = set()
+        for widget_pairs in classifier_widgets.values():
+            all_widget_pairs.update(widget_pairs)
+        
+        for widget, label in all_widget_pairs:
+            widget.setVisible(False)
+            label.setVisible(False)
+        
+        # Show widgets for the selected classifier
+        if classifier_type in classifier_widgets:
+            for widget, label in classifier_widgets[classifier_type]:
+                widget.setVisible(True)
+                label.setVisible(True)
+    
     def _reset_combobox_choices(self):
         # clear pyqt combobox choices
-        self._labels_layer_combobox.clear()
+        self._labels_layer_qcombobox.clear()
         labels_layers = self._get_labels_layer_with_features()
         # Set choices in qt combobox
-        self._labels_layer_combobox.addItems(
+        self._labels_layer_qcombobox.addItems(
             [layer.name for layer in labels_layers])
         # Link layer name change event to this method
         for layer in labels_layers:
@@ -83,7 +124,7 @@ class Napari_Train_And_Predict_Signal_Classifier(QWidget):
             notifications.show_warning('Plotter not found')
             return
 
-        classifier_path = self._classifier_path_line_edit.text()
+        classifier_path = self._classifier_path_qlineedit.text()
         annotations_column_name = 'Annotations'
 
         # Check if plotter has data
@@ -96,7 +137,7 @@ class Napari_Train_And_Predict_Signal_Classifier(QWidget):
             object_id_column_name = self.plotter.object_id_axis_key
         # Get table from selected layer features
         current_labels_layer = self._get_layer_by_name(
-            self._labels_layer_combobox.currentText())
+            self._labels_layer_qcombobox.currentText())
         table = current_labels_layer.features
         # Get signal features table
         signal_features_table = get_signal_features(
@@ -108,6 +149,11 @@ class Napari_Train_And_Predict_Signal_Classifier(QWidget):
         if self.signal_features_in_metadata:
             current_labels_layer.metadata['signal_features'] = signal_features_table
 
+        # Get classifier parameters from widgets
+        n_estimators = self._n_trees_qspinbox.value()
+        random_state = self._random_state_qspinbox.value()
+        train_size = self._training_size_qhorizontalslider.value() / 100.0  # Convert percentage to fraction
+        
         # Train signal classifier
         clssifier_path = train_signal_classifier(
             table,
@@ -115,14 +161,17 @@ class Napari_Train_And_Predict_Signal_Classifier(QWidget):
             x_column_name=x_column_name,
             y_column_name=y_column_name,
             object_id_column_name=object_id_column_name,
-            annotations_column_name=annotations_column_name
+            annotations_column_name=annotations_column_name,
+            n_estimators=n_estimators,
+            random_state=random_state,
+            train_size=train_size
         )
         if clssifier_path is None:
             return
 
         # Get absolute path and set it to string
         clssifier_path = Path(clssifier_path).absolute().as_posix()
-        self._classifier_path_line_edit.setText(clssifier_path)
+        self._classifier_path_qlineedit.setText(clssifier_path)
         # Run predictions
         table_with_predictions = predict_signal_labels(
             table,
