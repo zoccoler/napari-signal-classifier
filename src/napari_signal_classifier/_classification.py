@@ -44,7 +44,8 @@ def _get_classifier_file_path(classifier_path, base_name='signal_classifier'):
 
 
 def split_table_train_test(table, train_size=0.8, random_state=None,
-                                     annotations_column_name='Annotations'):
+                                     annotations_column_name='Annotations',
+                                     group_by_column='label'):
     '''Split the table into training and test sets based on annotations.
 
     Parameters
@@ -57,6 +58,8 @@ def split_table_train_test(table, train_size=0.8, random_state=None,
         Random state for reproducibility (default is None).
     annotations_column_name : str, optional
         Column name containing the annotations for training (default is 'Annotations').
+    group_by_column : str, optional
+        Column name to group by when splitting (default is 'label').
 
     Returns
     -------
@@ -67,12 +70,12 @@ def split_table_train_test(table, train_size=0.8, random_state=None,
     '''
     from sklearn.model_selection import train_test_split
     # Get training data
-    table_annotated_unique = table[table[annotations_column_name] > 0].groupby('label').first()
+    table_annotated_unique = table[table[annotations_column_name] > 0].groupby(group_by_column).first()
     labels_training, labels_test = train_test_split(
         table_annotated_unique.index, train_size=train_size, random_state=random_state,
         stratify=table_annotated_unique[annotations_column_name])
-    table_training = table[table['label'].isin(labels_training)]
-    table_test = table[table['label'].isin(labels_test)]
+    table_training = table[table[group_by_column].isin(labels_training)]
+    table_test = table[table[group_by_column].isin(labels_test)]
     return table_training, table_test
 
 def train_signal_classifier(table, classifier_path=None,
@@ -258,7 +261,11 @@ def train_sub_signal_classifier(table, classifier_path=None,
                                 y_column_name='mean_intensity',
                                 object_id_column_name='label',
                                 annotations_column_name='Annotations',
-                                random_state=None):
+                                n_estimators=100,
+                                random_state=None,
+                                train_size=0.8,
+                                detrend=False,
+                                smooth=0.1):
     '''Train a sub-signal classifier using annotated sub-signals in the table.
 
     Parameters
@@ -275,8 +282,16 @@ def train_sub_signal_classifier(table, classifier_path=None,
         Column name identifying different time-series (default is 'label').
     annotations_column_name : str, optional
         Column name containing the annotations for training (default is 'Annotations').
+    n_estimators : int, optional
+        Number of trees in the random forest (default is 100).
     random_state : int, optional
         Random state for reproducibility (default is None).
+    train_size : float, optional
+        Proportion of the dataset to include in the training set (default is 0.8).
+    detrend : bool, optional
+        Whether to detrend the sub-signals when generating templates (default is False).
+    smooth : float, optional
+        Smoothing factor to apply when generating templates (default is 0.1).
     
     Returns
     -------
@@ -288,37 +303,54 @@ def train_sub_signal_classifier(table, classifier_path=None,
     annotations_mask = table[annotations_column_name] != 0
     labels_with_annotations = np.unique(
         table[annotations_mask][object_id_column_name].values)
-    table_training = table[table[object_id_column_name].isin(labels_with_annotations)].sort_values(
+    table_annotated = table[table[object_id_column_name].isin(labels_with_annotations)].sort_values(
         by=[object_id_column_name, x_column_name]).reset_index(drop=True)
 
     # Extract sub-signals
-    sub_signal_collection_train = extract_sub_signals_by_annotations(
-        table_training, y_column_name, object_id_column_name, annotations_column_name, x_column_name)
+    sub_signal_collection = extract_sub_signals_by_annotations(
+        table_annotated, y_column_name, object_id_column_name, annotations_column_name, x_column_name)
 
     # Generate sub_signals table with resampling (all sub-signals to the same number of samples)
-    sub_signals_table_training = generate_sub_signals_table(
-        sub_signal_collection_train, resample=True)
+    sub_signals_table = generate_sub_signals_table(
+        sub_signal_collection, resample=True)
+    
+    # Split into train and test sets using sub_label as grouping column and category as annotations
+    try:
+        sub_signals_table_training, sub_signals_table_test = split_table_train_test(
+            sub_signals_table, train_size=train_size, random_state=random_state,
+            annotations_column_name='category', group_by_column='sub_label')
+    except ValueError:
+        notifications.show_warning(
+            message=f"Not enough annotated sub-signals to perform train/test split. Please decrease train size or provide more annotations.",
+        )
+        return None
 
-    # Get sub_signal features table
+    # Get sub_signal features table for training
     sub_signal_features_table_training = get_signal_features(
         sub_signals_table_training, column_id='sub_label',
         column_sort='frame_resampled',
         column_value='mean_intensity')
 
-    # Get annotations
-    annotations = [
-        sub_sig.category for sub_sig in sub_signal_collection_train.sub_signals]
+    # Get annotations for training
+    annotations_training = sub_signals_table_training.groupby('sub_label').first()['category'].values
+    
+    # Get sub_signal features table for test
+    sub_signal_features_table_test = get_signal_features(
+        sub_signals_table_test, column_id='sub_label',
+        column_sort='frame_resampled',
+        column_value='mean_intensity')
+    
+    # Get annotations for test
+    annotations_test = sub_signals_table_test.groupby('sub_label').first()['category'].values
 
-    if random_state is None:
-        random_state = 42
-    classifier = RandomForestClassifier(random_state=random_state)
+    classifier = RandomForestClassifier(n_estimators=n_estimators, random_state=random_state)
     
     classifier_file_path = _get_classifier_file_path(classifier_path, base_name='sub_signal_classifier')
 
-    classifier.fit(sub_signal_features_table_training, annotations)
-    train_score = classifier.score(
-        sub_signal_features_table_training, annotations)
-    print(f"Training score: {train_score:.4f}")
+    classifier.fit(sub_signal_features_table_training, annotations_training)
+    train_score = classifier.score(sub_signal_features_table_training, annotations_training)
+    test_score = classifier.score(sub_signal_features_table_test, annotations_test)
+    print(f"Training score: {train_score:.4f}, Test score: {test_score:.4f}")
     joblib.dump(classifier, classifier_file_path)
     return classifier_file_path
 
@@ -371,10 +403,10 @@ def predict_sub_signal_labels(table, classifier_file_path,
                               object_id_column_name='label',
                               annotations_column_name='Annotations',
                               predictions_column_name='Predictions',
-                              threshold=0.8,
+                              detection_threshold=0.8,
                               sub_signal_templates=None,
                               sub_signal_features_table=None,
-                              overlap=0.5,
+                              merging_overlap_threshold=0.5,
                               detrend=False,
                               smooth=0.1):
     '''Predict sub-signal labels using a trained sub-signal classifier.
@@ -425,10 +457,10 @@ def predict_sub_signal_labels(table, classifier_file_path,
 
     # Extract sub-signals by templates
     sub_signal_collection = extract_sub_signals_by_templates(
-        table, y_column_name, object_id_column_name, x_column_name, sub_signal_templates, threshold)
+        table, y_column_name, object_id_column_name, x_column_name, sub_signal_templates, detection_threshold)
 
     # Merge sub-signals that overlap by more than overlap (50%by default) (they are likely the same sub_signal detected by different templates)
-    sub_signal_collection.merge_subsignals(overlap_threshold=overlap)
+    sub_signal_collection.merge_subsignals(overlap_threshold=merging_overlap_threshold)
 
     # Generate sub_signals table (no need to resample them since they were collected via template of fixed length)
     sub_signals_table = generate_sub_signals_table(
