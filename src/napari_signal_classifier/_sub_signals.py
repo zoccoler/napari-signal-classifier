@@ -4,6 +4,23 @@ from collections import defaultdict
 
 
 class SubSignal:
+    '''A class to represent a sub-signal segment extracted from a larger signal.
+
+    Attributes
+    ----------
+    data : np.ndarray
+        The signal data as a numpy array.
+    category : int
+        The class/annotation of the signal.
+    label : int
+        The label of the signal.
+    start_frame : int
+        The starting frame of the signal segment.
+    end_frame : int
+        The ending frame of the signal segment.
+    id : int
+        A unique identifier for the signal segment.
+    '''
     _id_counter = 0  # Class variable to keep track of the last assigned ID
 
     def __init__(self, data, category, label, start_frame, end_frame):
@@ -64,6 +81,17 @@ class SubSignal:
 
 
 class SubSignalCollection:
+    '''A class to manage a collection of SubSignal objects.
+
+    Attributes
+    ----------
+    sub_signals : list
+        A list of SubSignal objects.
+    categories : list
+        A list of unique signal categories present in the collection.
+    max_length_per_category : dict
+        A dictionary mapping each category to the maximum length of signals in that category.
+    '''
     def __init__(self):
         self.sub_signals = []
         self.categories = []

@@ -1,17 +1,89 @@
+[project]
+name = "napari-signal-classifier"
+dynamic = ["version"]
+description = "A napari plugin that classifies annotated signals stored in a table in the .features of a Labels layer using scikit-learn RandomForest classifier."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [
+    { name = "Marcelo Leomil Zoccoler", email = "marzoccoler@gmail.com" }
+]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Framework :: napari",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Image Processing",
+    "Topic :: Scientific/Engineering :: Visualization"
+]
+dependencies = [
+    "numpy",
+    "magicgui",
+    "qtpy",
+    "scikit-learn",
+    "nap-plot-tools>=0.1.2",
+    "scipy",
+    "pandas",
+    "dask",
+    "tsfresh",
+    "dtaidistance",
+    "napari-signal-selector>=0.0.6",
+    "cmap"
+]
+
+[project.optional-dependencies]
+testing = [
+    "tox",
+    "pytest",
+    "pytest-cov",
+    "pytest-qt",
+    "napari",
+    "pyqt5"
+]
+
+[project.entry-points."napari.manifest"]
+biaplotter = "biaplotter:napari.yaml"
+
+[project.urls]
+"Homepage" = "https://github.com/zoccoler/napari-signal-classifier"
+"Bug Tracker" = "https://github.com/zoccoler/napari-signal-classifier/issues"
+"Documentation" = "https://github.com/zoccoler/napari-signal-classifier#README.md"
+"Source Code" = "https://github.com/zoccoler/napari-signal-classifier"
+"User Support" = "https://github.com/zoccoler/napari-signal-classifier/issues"
+
 [build-system]
-requires = ["setuptools>=42.0.0", "wheel"]
+requires = ["setuptools>=42.0.0", "wheel", "setuptools_scm"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools]
+include-package-data = true
 
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"*" = ["*.yaml"]
+
+[tool.setuptools_scm]
+write_to = "src/napari_signal_classifier/_version.py"
+fallback_version = "0.0.1+nogit"
 
 [tool.black]
 line-length = 79
-target-version = ['py38', 'py39', 'py310', 'py311']
+target-version = ['py310', 'py311', 'py312', 'py313']
 
 
 [tool.ruff]
 line-length = 79
-select = [
+lint.select = [
     "E", "F", "W", #flake8
     "UP", # pyupgrade
     "I", # isort
@@ -24,7 +96,7 @@ select = [
     "PIE", # flake8-pie
     "SIM", # flake8-simplify
 ]
-ignore = [
+lint.ignore = [
     "E501", # line too long. let black handle this
     "UP006", "UP007", # type annotation. As using magicgui require runtime type annotation then we disable this.
     "SIM117", # flake8-simplify - some of merged with statements are not looking great with black, reanble after drop python 3.9
@@ -52,5 +124,5 @@ exclude = [
     "*_vendor*",
 ]
 
-target-version = "py38"
+target-version = "py311"
 fix = true
