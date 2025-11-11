@@ -8,6 +8,41 @@ from napari.utils import notifications
 from napari_signal_classifier._features import get_signal_features
 
 
+def _get_classifier_file_path(classifier_path, base_name='signal_classifier'):
+    '''Generate a unique classifier file path.
+    
+    Parameters
+    ----------
+    classifier_path : str or None
+        User-provided path (can be None, empty string, folder, or file path).
+    base_name : str, optional
+        Base name for the classifier file (default is 'signal_classifier').
+    
+    Returns
+    -------
+    Path
+        Unique file path for the classifier.
+    '''
+    if classifier_path is None or classifier_path == '':
+        classifier_folder_path = Path.cwd()
+    else:
+        classifier_path = Path(classifier_path)
+        if classifier_path.is_dir():
+            classifier_folder_path = classifier_path
+        else:
+            # If it's a file path, use it directly
+            return classifier_path
+    
+    # Generate unique file name in the folder
+    classifier_file_path = classifier_folder_path / f'{base_name}.pkl'
+    counter = 1
+    while classifier_file_path.exists():
+        classifier_file_path = classifier_folder_path / f'{base_name}_{counter}.pkl'
+        counter += 1
+    
+    return classifier_file_path
+
+
 def split_table_train_test(table, train_size=0.8, random_state=None,
                                      annotations_column_name='Annotations'):
     '''Split the table into training and test sets based on annotations.
@@ -76,10 +111,6 @@ def train_signal_classifier(table, classifier_path=None,
     classifier_file_path : str
         Path where the trained classifier is saved.
     '''
-    if random_state is not None:
-        random_state = np.random.RandomState(random_state)
-    else:
-        random_state = None
     # Get training data
     try:
         table_training, table_test = split_table_train_test(
@@ -110,15 +141,7 @@ def train_signal_classifier(table, classifier_path=None,
     # Train classifier with training set
     classifier = RandomForestClassifier(n_estimators=n_estimators, random_state=random_state)
     
-    if classifier_path is None or classifier_path == '':
-        # Create a classifier file path with a unique name
-        classifier_folder_path = Path.cwd()
-        base_name = 'signal_classifier'
-        classifier_file_path = classifier_folder_path / f'{base_name}.pkl'
-        counter = 1
-        while classifier_file_path.exists():
-            classifier_file_path = classifier_folder_path / f'{base_name}_{counter}.pkl'
-            counter += 1
+    classifier_file_path = _get_classifier_file_path(classifier_path, base_name='signal_classifier')
 
     classifier.fit(signal_features_table_training, annotations)
     train_score = classifier.score(signal_features_table_training, annotations)
@@ -290,15 +313,7 @@ def train_sub_signal_classifier(table, classifier_path=None,
         random_state = 42
     classifier = RandomForestClassifier(random_state=random_state)
     
-    if classifier_path is None or classifier_path == '':
-        # Create a classifier file path with a unique name
-        classifier_folder_path = Path.cwd()
-        base_name = 'sub_signal_classifier'
-        classifier_file_path = classifier_folder_path / f'{base_name}.pkl'
-        counter = 1
-        while classifier_file_path.exists():
-            classifier_file_path = classifier_folder_path / f'{base_name}_{counter}.pkl'
-            counter += 1
+    classifier_file_path = _get_classifier_file_path(classifier_path, base_name='sub_signal_classifier')
 
     classifier.fit(sub_signal_features_table_training, annotations)
     train_score = classifier.score(
