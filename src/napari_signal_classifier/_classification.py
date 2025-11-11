@@ -1,18 +1,53 @@
-from pathlib import Path
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 import joblib
 
+from pathlib import Path
+from napari.utils import notifications
 from napari_signal_classifier._features import get_signal_features
 
+
+def split_table_train_test(table, train_size=0.8, random_state=None,
+                                     annotations_column_name='Annotations'):
+    '''Split the table into training and test sets based on annotations.
+
+    Parameters
+    ----------
+    table : pd.DataFrame
+        Input table containing time-series data in long format.
+    train_size : float, optional
+        Proportion of the dataset to include in the training set (default is 0.8).
+    random_state : int, optional
+        Random state for reproducibility (default is None).
+    annotations_column_name : str, optional
+        Column name containing the annotations for training (default is 'Annotations').
+
+    Returns
+    -------
+    table_training : pd.DataFrame
+        Training set table.
+    table_test : pd.DataFrame
+        Test set table.
+    '''
+    from sklearn.model_selection import train_test_split
+    # Get training data
+    table_annotated_unique = table[table[annotations_column_name] > 0].groupby('label').first()
+    labels_training, labels_test = train_test_split(
+        table_annotated_unique.index, train_size=train_size, random_state=random_state,
+        stratify=table_annotated_unique[annotations_column_name])
+    table_training = table[table['label'].isin(labels_training)]
+    table_test = table[table['label'].isin(labels_test)]
+    return table_training, table_test
 
 def train_signal_classifier(table, classifier_path=None,
                             x_column_name='frame',
                             y_column_name='mean_intensity',
                             object_id_column_name='label',
                             annotations_column_name='Annotations',
-                            random_state=None):
+                            n_estimators=100,
+                            random_state=None,
+                            train_size=0.8):
     '''Train a signal classifier using annotated signals in the table.
 
     Parameters
@@ -29,16 +64,33 @@ def train_signal_classifier(table, classifier_path=None,
         Column name identifying different time-series (default is 'label').
     annotations_column_name : str, optional
         Column name containing the annotations for training (default is 'Annotations').
+    n_estimators : int, optional
+        Number of trees in the random forest (default is 100).
     random_state : int, optional
         Random state for reproducibility (default is None).
+    train_size : float, optional
+        Proportion of the dataset to include in the training set (default is 0.8).
     
     Returns
     -------
     classifier_file_path : str
         Path where the trained classifier is saved.
     '''
+    if random_state is not None:
+        random_state = np.random.RandomState(random_state)
+    else:
+        random_state = None
     # Get training data
-    table_training = table[table[annotations_column_name] > 0]
+    try:
+        table_training, table_test = split_table_train_test(
+            table, train_size=train_size, random_state=random_state,
+            annotations_column_name=annotations_column_name)
+    except ValueError:
+        notifications.show_warning(
+            message=f"Not enough annotated labels to perform train/test split. Please decrease train size or provide more annotations.",
+        )
+        return None
+    
     # Get signal features table
     signal_features_table_training = get_signal_features(
         table_training, column_id=object_id_column_name,
@@ -47,11 +99,16 @@ def train_signal_classifier(table, classifier_path=None,
     # Get annotations (one per signal in training set)
     annotations = table_training.groupby(object_id_column_name).first()[
         'Annotations'].values
+    # Get signal features for test set
+    signal_features_table_test = get_signal_features(
+        table_test, column_id=object_id_column_name,
+        column_sort=x_column_name,
+        column_value=y_column_name)
+    # Get annotations for test set
+    annotations_test = table_test.groupby(object_id_column_name).first()[
+        'Annotations'].values
     # Train classifier with training set
-    # TODO: remove fixed random state
-    if random_state is None:
-        random_state = 42
-    classifier = RandomForestClassifier(random_state=random_state)
+    classifier = RandomForestClassifier(n_estimators=n_estimators, random_state=random_state)
     
     if classifier_path is None or classifier_path == '':
         # Create a classifier file path with a unique name
@@ -65,7 +122,8 @@ def train_signal_classifier(table, classifier_path=None,
 
     classifier.fit(signal_features_table_training, annotations)
     train_score = classifier.score(signal_features_table_training, annotations)
-    # TODO: Report train_score somewhere
+    test_score = classifier.score(signal_features_table_test, annotations_test)
+    print(f"Training score: {train_score:.4f}, Test score: {test_score:.4f}")
     joblib.dump(classifier, classifier_file_path)
     return classifier_file_path
 

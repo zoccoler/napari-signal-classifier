@@ -117,6 +117,8 @@ class Napari_Train_And_Predict_Signal_Classifier(QWidget):
             object_id_column_name=object_id_column_name,
             annotations_column_name=annotations_column_name
         )
+        if clssifier_path is None:
+            return
 
         # Get absolute path and set it to string
         clssifier_path = Path(clssifier_path).absolute().as_posix()
