@@ -36,7 +36,8 @@ dependencies = [
     "tsfresh",
     "dtaidistance",
     "napari-signal-selector>=0.0.6",
-    "cmap"
+    "cmap",
+    "packaging"
 ]
 
 [project.optional-dependencies]
