@@ -5,7 +5,17 @@ from qtpy.QtWidgets import QWidget
 from pathlib import Path
 from cmap import Colormap
 
-from napari_signal_selector.interactive import InteractiveFeaturesLineWidget
+# Import InteractiveFeaturesLineWidget based on napari-signal-selector version
+from importlib.metadata import version
+from packaging.version import parse as parse_version
+
+nss_version = parse_version(version('napari-signal-selector'))
+if nss_version >= parse_version('0.1.0'):
+    from napari_signal_selector._interactive import InteractiveFeaturesLineWidget
+else:
+    from napari_signal_selector.interactive import InteractiveFeaturesLineWidget
+
+
 from nap_plot_tools.cmap import get_custom_cat10based_cmap_list
 from skimage.util import map_array
 
