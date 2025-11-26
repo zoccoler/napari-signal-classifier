@@ -266,6 +266,10 @@ class Napari_Train_And_Predict_Sub_Signal_Classifier(QWidget):
         self._classifier_type_qcombobox.currentTextChanged.connect(
             self._on_classifier_type_changed)
         
+        # Connect detrend checkbox to update smooth widget visibility
+        self._detrend_qcheckbox.stateChanged.connect(
+            self._on_detrend_changed)
+        
         # Populate combobox if there are already layers
         self._reset_combobox_choices()
 
@@ -273,6 +277,9 @@ class Napari_Train_And_Predict_Sub_Signal_Classifier(QWidget):
         
         # Initialize widget visibility based on selected classifier
         self._on_classifier_type_changed(self._classifier_type_qcombobox.currentText())
+        
+        # Initialize smooth widget visibility based on detrend state
+        self._on_detrend_changed(self._detrend_qcheckbox.isChecked())
 
     def _get_labels_layer_with_features(self):
         '''Get selected labels layer'''
@@ -315,6 +322,17 @@ class Napari_Train_And_Predict_Sub_Signal_Classifier(QWidget):
             for widget, label in classifier_widgets[classifier_type]:
                 widget.setVisible(True)
                 label.setVisible(True)
+
+    def _on_detrend_changed(self, is_checked):
+        '''Update smooth widget visibility based on detrend checkbox state.
+        
+        Parameters
+        ----------
+        is_checked : bool
+            Whether the detrend checkbox is checked.
+        '''
+        self._smooth_factor_qslider.setVisible(is_checked)
+        self._smooth_factor_qlabel.setVisible(is_checked)
 
     def _reset_combobox_choices(self):
         # clear pyqt combobox choices
