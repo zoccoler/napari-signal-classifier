@@ -114,7 +114,7 @@ class Napari_Train_And_Predict_Signal_Classifier(QWidget):
             for widget, label in classifier_widgets[classifier_type]:
                 widget.setVisible(True)
                 label.setVisible(True)
-    
+
     def _reset_combobox_choices(self):
         # clear pyqt combobox choices
         self._labels_layer_qcombobox.clear()
@@ -162,8 +162,12 @@ class Napari_Train_And_Predict_Signal_Classifier(QWidget):
         # Get classifier parameters from widgets
         n_estimators = self._n_trees_qspinbox.value()
         random_state = self._random_state_qspinbox.value()
+        if random_state < 0:
+            random_state = None
         train_size = self._training_size_qhorizontalslider.value() / 100.0  # Convert percentage to fraction
-        
+        if train_size == 0:
+            notifications.show_warning('Training size cannot be zero.')
+            return
         # Train signal classifier
         clssifier_path = train_signal_classifier(
             table,
@@ -380,7 +384,12 @@ class Napari_Train_And_Predict_Sub_Signal_Classifier(QWidget):
         # Get classifier parameters from widgets
         n_estimators = self._n_trees_qspinbox.value()
         random_state = self._random_state_qspinbox.value()
+        if random_state < 0:
+            random_state = None
         train_size = self._training_size_qhorizontalslider.value() / 100.0  # Convert percentage to fraction
+        if train_size == 0:
+            notifications.show_warning('Training size cannot be zero.')
+            return
         detection_threshold = self._detection_threshold_qslider.value() / 100.0  # Convert to 0-1 range
         detrend = self._detrend_qcheckbox.isChecked()
         smooth = self._smooth_factor_qslider.value() / 100.0  # Convert to 0-1 range
