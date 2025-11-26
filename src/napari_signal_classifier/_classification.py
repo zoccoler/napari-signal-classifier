@@ -433,7 +433,7 @@ def predict_sub_signal_labels(table, classifier_file_path,
         Pre-computed sub-signal templates (default is None).
     sub_signal_features_table : pd.DataFrame, optional
         Pre-computed sub-signal features table (default is None).
-    overlap : float, optional
+    merging_overlap_threshold : float, optional
         Overlap threshold for merging sub-signals (default is 0.5).
     detrend : bool, optional
         Whether to detrend the sub-signals when generating templates (default is False).
@@ -460,7 +460,7 @@ def predict_sub_signal_labels(table, classifier_file_path,
         table, y_column_name, object_id_column_name, x_column_name, sub_signal_templates, detection_threshold)
 
     # Merge sub-signals that overlap by more than overlap (50%by default) (they are likely the same sub_signal detected by different templates)
-    sub_signal_collection.merge_subsignals(overlap_threshold=merging_overlap_threshold)
+    sub_signal_collection.merge_subsignals(merging_overlap_threshold=merging_overlap_threshold)
 
     # Generate sub_signals table (no need to resample them since they were collected via template of fixed length)
     sub_signals_table = generate_sub_signals_table(

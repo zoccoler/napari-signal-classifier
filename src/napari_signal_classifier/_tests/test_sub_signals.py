@@ -127,7 +127,7 @@ def test_subsignal_collection_merge():
     collection.add_sub_signal(ss2)
     
     original_count = len(collection.sub_signals)
-    collection.merge_subsignals(overlap_threshold=0.3)
+    collection.merge_subsignals(merging_overlap_threshold=0.3)
     
     # Should merge overlapping signals
     assert len(collection.sub_signals) <= original_count
