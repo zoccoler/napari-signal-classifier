@@ -168,6 +168,7 @@ class Napari_Train_And_Predict_Signal_Classifier(QWidget):
         if train_size == 0:
             notifications.show_warning('Training size cannot be zero.')
             return
+        stratify = self._stratify_qcheckbox.isChecked()
         # Train signal classifier
         clssifier_path = train_signal_classifier(
             table,
@@ -178,7 +179,8 @@ class Napari_Train_And_Predict_Signal_Classifier(QWidget):
             annotations_column_name=annotations_column_name,
             n_estimators=n_estimators,
             random_state=random_state,
-            train_size=train_size
+            train_size=train_size,
+            stratify=stratify
         )
         if clssifier_path is None:
             return
@@ -393,7 +395,8 @@ class Napari_Train_And_Predict_Sub_Signal_Classifier(QWidget):
         detection_threshold = self._detection_threshold_qslider.value() / 100.0  # Convert to 0-1 range
         detrend = self._detrend_qcheckbox.isChecked()
         smooth = self._smooth_factor_qslider.value() / 100.0  # Convert to 0-1 range
-        merging_overlap_threshold = self.merging_overlap_threshold_qslider.value() / 100.0  # Convert to 0-1 range
+        merging_overlap_threshold = self._merging_overlap_threshold_qslider.value() / 100.0  # Convert to 0-1 range
+        stratify = self._stratify_qcheckbox.isChecked()
         
         # Train signal classifier
         clssifier_path = train_sub_signal_classifier(
@@ -405,6 +408,7 @@ class Napari_Train_And_Predict_Sub_Signal_Classifier(QWidget):
             annotations_column_name=annotations_column_name,
             n_estimators=n_estimators,
             random_state=random_state,
+            stratify=stratify,
             train_size=train_size,
             detrend=detrend,
             smooth=smooth
