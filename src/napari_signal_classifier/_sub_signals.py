@@ -98,6 +98,7 @@ class SubSignalCollection:
         self.max_length_per_category = defaultdict(int)
 
     def add_sub_signal(self, sub_signal):
+        '''Add a SubSignal to the collection and update categories and max lengths.'''
         self.sub_signals.append(sub_signal)
         if sub_signal.category not in self.categories:
             self.categories.append(sub_signal.category)
@@ -110,13 +111,21 @@ class SubSignalCollection:
     def sort_by_category(self):
         self.sub_signals = sorted(self.sub_signals, key=lambda x: x.category)
 
-    def merge_subsignals(self, overlap_threshold):
+    def merge_subsignals(self, merging_overlap_threshold):
+        '''Merge overlapping SubSignal objects in the collection.
+
+        Parameters
+        ----------
+
+        merging_overlap_threshold : float
+            The overlap threshold for merging sub-signals (Jaccard index).
+        '''
         merged = []
         for subsignal in self.sub_signals:
             merged_with_existing = False
             for m in merged:
                 # and subsignal.category != m.category
-                if subsignal.label == m.label and subsignal.overlaps(m, overlap_threshold):
+                if subsignal.label == m.label and subsignal.overlaps(m, merging_overlap_threshold):
                     m.merge(subsignal)
                     m.category = f"{m.category}-{subsignal.category}"
                     merged_with_existing = True

@@ -6,101 +6,79 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>358</width>
+    <width>403</width>
     <height>494</height>
    </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>400</width>
+    <height>0</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="3" column="1">
-    <widget class="QLineEdit" name="_classifier_path_qlineedit">
-     <property name="placeholderText">
-      <string>If empty, uses local directory</string>
+   <item row="3" column="0">
+    <widget class="QLabel" name="_classifier_path_qlabel">
+     <property name="text">
+      <string>Classifier Folder Path:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="8" column="2">
+    <widget class="QLabel" name="_smooth_factor_qlabel">
+     <property name="minimumSize">
+      <size>
+       <width>100</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>100</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>Smooth Factor:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="0">
+    <widget class="QLabel" name="_training_size_qlabel">
+     <property name="text">
+      <string>Training Set Percentage:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1" colspan="5">
+    <widget class="QComboBox" name="_labels_layer_qcombobox">
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Labels Layer with table in .features attribute containing signals.&lt;/p&gt;&lt;p&gt;Check &lt;a href=&quot;https://github.com/zoccoler/napari-signal-selector?tab=readme-ov-file#input-data&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#ffaa00;&quot;&gt;napari-signal-selector&lt;/span&gt;&lt;/a&gt; documentation for details about table structure.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
     </widget>
    </item>
    <item row="8" column="1">
     <widget class="QCheckBox" name="_detrend_qcheckbox">
+     <property name="minimumSize">
+      <size>
+       <width>20</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>20</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check this if the annotated sub-signals show a low-frequency trend.&lt;br/&gt;If checked, it applies a detrending algorithm on the template generation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
      <property name="text">
-      <string>CheckBox</string>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="1">
-    <widget class="QComboBox" name="_labels_layer_qcombobox"/>
-   </item>
-   <item row="5" column="0">
-    <widget class="QLabel" name="_random_state_qlabel">
-     <property name="text">
-      <string>Random State:</string>
-     </property>
-    </widget>
-   </item>
-   <item row="6" column="1">
-    <widget class="QSlider" name="_training_size_qhorizontalslider">
-     <property name="minimum">
-      <number>0</number>
-     </property>
-     <property name="maximum">
-      <number>100</number>
-     </property>
-     <property name="value">
-      <number>80</number>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="0">
-    <widget class="QLabel" name="_labels_layer_qlabel">
-     <property name="text">
-      <string>Labels Layer with Signals Table:</string>
-     </property>
-    </widget>
-   </item>
-   <item row="7" column="1">
-    <widget class="QSlider" name="_detection_threshold_qslider">
-     <property name="maximum">
-      <number>100</number>
-     </property>
-     <property name="value">
-      <number>80</number>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="1">
-    <widget class="QComboBox" name="_classifier_type_qcombobox">
-     <item>
-      <property name="text">
-       <string>RandomForest</string>
-      </property>
-     </item>
-    </widget>
-   </item>
-   <item row="10" column="0">
-    <widget class="QLabel" name="merging_overlap_threshold_qlabel">
-     <property name="text">
-      <string>Merging Overlap Threshold:</string>
-     </property>
-    </widget>
-   </item>
-   <item row="4" column="0">
-    <widget class="QLabel" name="_n_trees_qlabel">
-     <property name="text">
-      <string>Number of Trees:</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="0">
-    <widget class="QLabel" name="_classifier_type_qlabel">
-     <property name="text">
-      <string>Classifier:</string>
+      <string/>
      </property>
     </widget>
    </item>
@@ -117,28 +95,18 @@
      </property>
     </spacer>
    </item>
-   <item row="19" column="0" colspan="2">
-    <widget class="QPushButton" name="_run_qpushbutton">
+   <item row="10" column="0">
+    <widget class="QLabel" name="_merging_overlap_threshold_qlabel">
      <property name="text">
-      <string>Train and Predict</string>
+      <string>Merging Overlap Threshold:</string>
      </property>
     </widget>
    </item>
-   <item row="10" column="1">
-    <widget class="QSlider" name="merging_overlap_threshold_qslider">
-     <property name="maximum">
-      <number>100</number>
-     </property>
-     <property name="value">
-      <number>50</number>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item row="4" column="1">
+   <item row="4" column="1" colspan="5">
     <widget class="QSpinBox" name="_n_trees_qspinbox">
+     <property name="toolTip">
+      <string>Number of estimators for the Random Forest.</string>
+     </property>
      <property name="minimum">
       <number>1</number>
      </property>
@@ -150,17 +118,136 @@
      </property>
     </widget>
    </item>
-   <item row="3" column="0">
-    <widget class="QLabel" name="_classifier_path_qlabel">
-     <property name="text">
-      <string>Classifier Folder Path:</string>
+   <item row="7" column="1" colspan="5">
+    <widget class="QSlider" name="_detection_threshold_qslider">
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sensitivity for sub-signal detection.&lt;/p&gt;&lt;p&gt;Sub-signals will be disconsidered if peaks in cross-correlation with template are lower than this value.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="maximum">
+      <number>100</number>
+     </property>
+     <property name="singleStep">
+      <number>10</number>
+     </property>
+     <property name="value">
+      <number>80</number>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="tickPosition">
+      <enum>QSlider::TicksBelow</enum>
+     </property>
+     <property name="tickInterval">
+      <number>10</number>
      </property>
     </widget>
    </item>
-   <item row="8" column="0">
-    <widget class="QLabel" name="_detrend_qlabel">
+   <item row="8" column="3" colspan="3">
+    <widget class="QSlider" name="_smooth_factor_qslider">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Fraction of the highest frequencies removed for detrending.&lt;/p&gt;&lt;p&gt;Increase this if the annotated sub-signals have a noisy baseline.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="maximum">
+      <number>50</number>
+     </property>
+     <property name="singleStep">
+      <number>10</number>
+     </property>
+     <property name="value">
+      <number>10</number>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="tickPosition">
+      <enum>QSlider::TicksBelow</enum>
+     </property>
+     <property name="tickInterval">
+      <number>10</number>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="5">
+    <widget class="QCheckBox" name="_stratify_qcheckbox">
+     <property name="minimumSize">
+      <size>
+       <width>20</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>20</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="toolTip">
+      <string>Check this to ensure same proprotion of classes in training and test sets.</string>
+     </property>
      <property name="text">
-      <string>Detrend?</string>
+      <string/>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="1" colspan="5">
+    <widget class="QSlider" name="_merging_overlap_threshold_qslider">
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Minimal amount of overlap (Jaccard-index) in time between detected sub-signals to have them merged and considered a single detection.&lt;/p&gt;&lt;p&gt;Increase this if you have sub-signals too close to each other to have them detected as separated sub-signals.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="maximum">
+      <number>100</number>
+     </property>
+     <property name="singleStep">
+      <number>10</number>
+     </property>
+     <property name="value">
+      <number>50</number>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="tickPosition">
+      <enum>QSlider::TicksBelow</enum>
+     </property>
+     <property name="tickInterval">
+      <number>10</number>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0">
+    <widget class="QLabel" name="_n_trees_qlabel">
+     <property name="text">
+      <string>Number of Trees:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0">
+    <widget class="QLabel" name="_labels_layer_qlabel">
+     <property name="text">
+      <string>Labels Layer with Signals Table:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="1" colspan="5">
+    <widget class="QSpinBox" name="_random_state_qspinbox">
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter non-negative value for reproducibility. Setting it to -1 may make each run yield different outputs (it is equivalent to passing 'None' to random_state arguments in scikit-learn).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="minimum">
+      <number>-1</number>
+     </property>
+     <property name="maximum">
+      <number>999</number>
      </property>
     </widget>
    </item>
@@ -171,30 +258,106 @@
      </property>
     </widget>
    </item>
-   <item row="5" column="1">
-    <widget class="QSpinBox" name="_random_state_qspinbox"/>
-   </item>
-   <item row="6" column="0">
-    <widget class="QLabel" name="_training_size_qlabel">
-     <property name="text">
-      <string>Training Set Percentage:</string>
+   <item row="3" column="1" colspan="5">
+    <widget class="QLineEdit" name="_classifier_path_qlineedit">
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Specify folder path to save the classifier.&lt;/p&gt;&lt;p&gt;File name is autogenerated and unique.&lt;/p&gt;&lt;p&gt;To run predictions from a pre-trained classifier, enter the classifier full file path in this case (a .pkl file for Random Forest).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="placeholderText">
+      <string>If empty, uses local directory</string>
      </property>
     </widget>
    </item>
-   <item row="9" column="0">
-    <widget class="QLabel" name="_smooth_factor_qlabel">
+   <item row="1" column="0">
+    <widget class="QLabel" name="_classifier_type_qlabel">
      <property name="text">
-      <string>Smoothing Factor:</string>
+      <string>Classifier:</string>
      </property>
     </widget>
    </item>
-   <item row="9" column="1">
-    <widget class="QSlider" name="_smooth_factor_qslider">
+   <item row="1" column="1" colspan="5">
+    <widget class="QComboBox" name="_classifier_type_qcombobox">
+     <item>
+      <property name="text">
+       <string>RandomForest</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="8" column="0">
+    <widget class="QLabel" name="_detrend_qlabel">
+     <property name="text">
+      <string>Detrend?</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="0">
+    <widget class="QLabel" name="_random_state_qlabel">
+     <property name="text">
+      <string>Random State:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="4">
+    <widget class="QLabel" name="_stratify_qlabel">
+     <property name="minimumSize">
+      <size>
+       <width>60</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>60</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>Stratify?</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="1" colspan="3">
+    <widget class="QSlider" name="_training_size_qhorizontalslider">
+     <property name="minimumSize">
+      <size>
+       <width>120</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="toolTip">
+      <string>Percentage of annotated signals used for training. The remaning will be set as test data.</string>
+     </property>
+     <property name="minimum">
+      <number>0</number>
+     </property>
      <property name="maximum">
       <number>100</number>
      </property>
+     <property name="singleStep">
+      <number>10</number>
+     </property>
+     <property name="value">
+      <number>70</number>
+     </property>
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="tickPosition">
+      <enum>QSlider::TicksBelow</enum>
+     </property>
+     <property name="tickInterval">
+      <number>10</number>
+     </property>
+    </widget>
+   </item>
+   <item row="19" column="0" colspan="6">
+    <widget class="QPushButton" name="_run_qpushbutton">
+     <property name="toolTip">
+      <string>If full classifier path is given, just runs predictions</string>
+     </property>
+     <property name="text">
+      <string>Train and Predict</string>
      </property>
     </widget>
    </item>

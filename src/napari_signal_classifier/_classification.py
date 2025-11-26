@@ -43,7 +43,7 @@ def _get_classifier_file_path(classifier_path, base_name='signal_classifier'):
     return classifier_file_path
 
 
-def split_table_train_test(table, train_size=0.8, random_state=None,
+def split_table_train_test(table, train_size=0.8, random_state=None, stratify=True,
                                      annotations_column_name='Annotations',
                                      group_by_column='label'):
     '''Split the table into training and test sets based on annotations.
@@ -56,6 +56,8 @@ def split_table_train_test(table, train_size=0.8, random_state=None,
         Proportion of the dataset to include in the training set (default is 0.8).
     random_state : int, optional
         Random state for reproducibility (default is None).
+    stratify : bool, optional
+        Whether to stratify the train/test split by annotations (default is True).
     annotations_column_name : str, optional
         Column name containing the annotations for training (default is 'Annotations').
     group_by_column : str, optional
@@ -73,7 +75,7 @@ def split_table_train_test(table, train_size=0.8, random_state=None,
     table_annotated_unique = table[table[annotations_column_name] > 0].groupby(group_by_column).first()
     labels_training, labels_test = train_test_split(
         table_annotated_unique.index, train_size=train_size, random_state=random_state,
-        stratify=table_annotated_unique[annotations_column_name])
+        stratify=table_annotated_unique[annotations_column_name] if stratify else None)
     table_training = table[table[group_by_column].isin(labels_training)]
     table_test = table[table[group_by_column].isin(labels_test)]
     return table_training, table_test
@@ -85,7 +87,8 @@ def train_signal_classifier(table, classifier_path=None,
                             annotations_column_name='Annotations',
                             n_estimators=100,
                             random_state=None,
-                            train_size=0.8):
+                            train_size=0.8,
+                            stratify=True):
     '''Train a signal classifier using annotated signals in the table.
 
     Parameters
@@ -108,20 +111,26 @@ def train_signal_classifier(table, classifier_path=None,
         Random state for reproducibility (default is None).
     train_size : float, optional
         Proportion of the dataset to include in the training set (default is 0.8).
+    stratify : bool, optional
+        Whether to stratify the train/test split by annotations (default is True).
     
     Returns
     -------
     classifier_file_path : str
         Path where the trained classifier is saved.
+    train_score : float
+        Training accuracy score.
+    test_score : float
+        Test accuracy score.
     '''
     # Get training data
     try:
         table_training, table_test = split_table_train_test(
-            table, train_size=train_size, random_state=random_state,
+            table, train_size=train_size, random_state=random_state, stratify=stratify,
             annotations_column_name=annotations_column_name)
     except ValueError:
         notifications.show_warning(
-            message=f"Not enough annotated labels to perform train/test split. Please decrease train size or provide more annotations.",
+            message=f"Not enough annotated labels to perform train/test split. Please provide more annotations.",
         )
         return None
     
@@ -151,7 +160,7 @@ def train_signal_classifier(table, classifier_path=None,
     test_score = classifier.score(signal_features_table_test, annotations_test)
     print(f"Training score: {train_score:.4f}, Test score: {test_score:.4f}")
     joblib.dump(classifier, classifier_file_path)
-    return classifier_file_path
+    return classifier_file_path, train_score, test_score
 
 
 def predict_signal_labels(table, classifier_file_path,
@@ -264,6 +273,7 @@ def train_sub_signal_classifier(table, classifier_path=None,
                                 n_estimators=100,
                                 random_state=None,
                                 train_size=0.8,
+                                stratify=True,
                                 detrend=False,
                                 smooth=0.1):
     '''Train a sub-signal classifier using annotated sub-signals in the table.
@@ -288,6 +298,8 @@ def train_sub_signal_classifier(table, classifier_path=None,
         Random state for reproducibility (default is None).
     train_size : float, optional
         Proportion of the dataset to include in the training set (default is 0.8).
+    stratify : bool, optional
+        Whether to stratify the train/test split by annotations (default is True).
     detrend : bool, optional
         Whether to detrend the sub-signals when generating templates (default is False).
     smooth : float, optional
@@ -297,6 +309,10 @@ def train_sub_signal_classifier(table, classifier_path=None,
     -------
     classifier_file_path : str
         Path where the trained classifier is saved.
+    train_score : float
+        Training accuracy score.
+    test_score : float
+        Test accuracy score.
     '''
     from napari_signal_classifier._sub_signals import extract_sub_signals_by_annotations
     # Get training data
@@ -317,11 +333,11 @@ def train_sub_signal_classifier(table, classifier_path=None,
     # Split into train and test sets using sub_label as grouping column and category as annotations
     try:
         sub_signals_table_training, sub_signals_table_test = split_table_train_test(
-            sub_signals_table, train_size=train_size, random_state=random_state,
+            sub_signals_table, train_size=train_size, random_state=random_state, stratify=stratify,
             annotations_column_name='category', group_by_column='sub_label')
     except ValueError:
         notifications.show_warning(
-            message=f"Not enough annotated sub-signals to perform train/test split. Please decrease train size or provide more annotations.",
+            message=f"Not enough annotated sub-signals to perform train/test split. Please provide more annotations.",
         )
         return None
 
@@ -352,7 +368,7 @@ def train_sub_signal_classifier(table, classifier_path=None,
     test_score = classifier.score(sub_signal_features_table_test, annotations_test)
     print(f"Training score: {train_score:.4f}, Test score: {test_score:.4f}")
     joblib.dump(classifier, classifier_file_path)
-    return classifier_file_path
+    return classifier_file_path, train_score, test_score
 
 
 def generate_sub_signal_templates_from_annotations(table, x_column_name='frame', y_column_name='mean_intensity', object_id_column_name='label', annotations_column_name='Annotations', detrend=False, smooth=0.1):
@@ -433,7 +449,7 @@ def predict_sub_signal_labels(table, classifier_file_path,
         Pre-computed sub-signal templates (default is None).
     sub_signal_features_table : pd.DataFrame, optional
         Pre-computed sub-signal features table (default is None).
-    overlap : float, optional
+    merging_overlap_threshold : float, optional
         Overlap threshold for merging sub-signals (default is 0.5).
     detrend : bool, optional
         Whether to detrend the sub-signals when generating templates (default is False).
@@ -460,7 +476,7 @@ def predict_sub_signal_labels(table, classifier_file_path,
         table, y_column_name, object_id_column_name, x_column_name, sub_signal_templates, detection_threshold)
 
     # Merge sub-signals that overlap by more than overlap (50%by default) (they are likely the same sub_signal detected by different templates)
-    sub_signal_collection.merge_subsignals(overlap_threshold=merging_overlap_threshold)
+    sub_signal_collection.merge_subsignals(merging_overlap_threshold=merging_overlap_threshold)
 
     # Generate sub_signals table (no need to resample them since they were collected via template of fixed length)
     sub_signals_table = generate_sub_signals_table(

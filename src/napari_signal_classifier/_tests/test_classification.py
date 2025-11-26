@@ -106,7 +106,7 @@ def test_split_table_train_test(sample_signal_table):
 def test_train_signal_classifier(sample_signal_table):
     """Test signal classifier training."""
     with tempfile.TemporaryDirectory() as tmpdir:
-        classifier_path = train_signal_classifier(
+        classifier_path, train_score, test_score = train_signal_classifier(
             sample_signal_table,
             classifier_path=tmpdir,
             train_size=0.6,
@@ -122,7 +122,7 @@ def test_predict_signal_labels(sample_signal_table):
     """Test signal label prediction."""
     with tempfile.TemporaryDirectory() as tmpdir:
         # Train classifier
-        classifier_path = train_signal_classifier(
+        classifier_path, train_score, test_score = train_signal_classifier(
             sample_signal_table,
             classifier_path=tmpdir,
             train_size=0.6,
@@ -144,7 +144,7 @@ def test_predict_signal_labels(sample_signal_table):
 def test_train_sub_signal_classifier(sample_sub_signal_table):
     """Test sub-signal classifier training."""
     with tempfile.TemporaryDirectory() as tmpdir:
-        classifier_path = train_sub_signal_classifier(
+        classifier_path, train_score, test_score = train_sub_signal_classifier(
             sample_sub_signal_table,
             classifier_path=tmpdir,
             train_size=0.6,

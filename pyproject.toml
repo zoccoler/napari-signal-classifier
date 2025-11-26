@@ -51,7 +51,7 @@ testing = [
 ]
 
 [project.entry-points."napari.manifest"]
-biaplotter = "biaplotter:napari.yaml"
+napari-signal-classifier = "napari_signal_classifier:napari.yaml"
 
 [project.urls]
 "Homepage" = "https://github.com/zoccoler/napari-signal-classifier"

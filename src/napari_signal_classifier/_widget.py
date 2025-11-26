@@ -114,7 +114,7 @@ class Napari_Train_And_Predict_Signal_Classifier(QWidget):
             for widget, label in classifier_widgets[classifier_type]:
                 widget.setVisible(True)
                 label.setVisible(True)
-    
+
     def _reset_combobox_choices(self):
         # clear pyqt combobox choices
         self._labels_layer_qcombobox.clear()
@@ -162,10 +162,50 @@ class Napari_Train_And_Predict_Signal_Classifier(QWidget):
         # Get classifier parameters from widgets
         n_estimators = self._n_trees_qspinbox.value()
         random_state = self._random_state_qspinbox.value()
+        if random_state < 0:
+            random_state = None
         train_size = self._training_size_qhorizontalslider.value() / 100.0  # Convert percentage to fraction
+        if train_size == 0:
+            notifications.show_warning('Training size cannot be zero.')
+            return
+        stratify = self._stratify_qcheckbox.isChecked()
         
+        # Validate sufficient annotated samples for train/test split
+        annotated_mask = table[annotations_column_name] != 0
+        n_annotated_labels = table[annotated_mask][object_id_column_name].nunique()
+        n_classes = table[annotated_mask][annotations_column_name].nunique()
+        test_size = 1.0 - train_size
+        n_train_samples = int(n_annotated_labels * train_size)
+        n_test_samples = int(n_annotated_labels * test_size)
+        
+        if n_train_samples < n_classes:
+            notifications.show_warning(
+                f'Insufficient annotated samples for training set. '
+                f'You have {n_annotated_labels} annotated labels and {n_classes} classes. '
+                f'With {train_size*100:.0f}% training size, the training set would have {n_train_samples} samples, '
+                f'but needs at least {n_classes} (one per class). '
+                f'Please increase training size or annotate more samples.'
+            )
+            return
+        
+        if n_test_samples < n_classes:
+            notifications.show_warning(
+                f'Insufficient annotated samples for test set. '
+                f'You have {n_annotated_labels} annotated labels and {n_classes} classes. '
+                f'With {train_size*100:.0f}% training size, the test set would have {n_test_samples} samples, '
+                f'but needs at least {n_classes} (one per class). '
+                f'Please decrease training size or annotate more samples.'
+            )
+            return
+        
+        print(f'Training signal classifier with {n_annotated_labels} annotated signals and {n_classes} classes...')
+        print(f'Classifier parameters: '
+              f'classifier={self._classifier_type_qcombobox.currentText()}, '
+              f'n_estimators={n_estimators}, random_state={random_state}, '
+              f'train_size={train_size}, stratify={stratify}')
+
         # Train signal classifier
-        clssifier_path = train_signal_classifier(
+        classifier_file_path, train_score, test_score = train_signal_classifier(
             table,
             classifier_path,
             x_column_name=x_column_name,
@@ -174,18 +214,41 @@ class Napari_Train_And_Predict_Signal_Classifier(QWidget):
             annotations_column_name=annotations_column_name,
             n_estimators=n_estimators,
             random_state=random_state,
-            train_size=train_size
+            train_size=train_size,
+            stratify=stratify
         )
-        if clssifier_path is None:
+        if classifier_file_path is None:
             return
 
         # Get absolute path and set it to string
-        clssifier_path = Path(clssifier_path).absolute().as_posix()
-        self._classifier_path_qlineedit.setText(clssifier_path)
+        classifier_file_path = Path(classifier_file_path).absolute().as_posix()
+        self._classifier_path_qlineedit.setText(classifier_file_path)
+        print('Classifier path is:', classifier_file_path)
+        
+        # Save classifier parameters to JSON file
+        import json
+        params_dict = {
+            'classifier_type': self._classifier_type_qcombobox.currentText(),
+            'n_estimators': n_estimators,
+            'random_state': random_state,
+            'train_size': train_size,
+            'stratify': stratify,
+            'n_annotated_labels': n_annotated_labels,
+            'n_classes': n_classes,
+            'n_train_samples': n_train_samples,
+            'n_test_samples': n_test_samples,
+            'train_score': train_score,
+            'test_score': test_score
+        }
+        params_path = Path(classifier_file_path).with_suffix('.json')
+        with open(params_path, 'w') as f:
+            json.dump(params_dict, f, indent=2)
+        print(f'Classifier parameters saved to: {params_path}')
+        
         # Run predictions
         table_with_predictions = predict_signal_labels(
             table,
-            classifier_file_path=clssifier_path,
+            classifier_file_path=classifier_file_path,
             x_column_name=x_column_name,
             y_column_name=y_column_name,
             object_id_column_name=object_id_column_name,
@@ -203,7 +266,7 @@ class Napari_Train_And_Predict_Signal_Classifier(QWidget):
 
         # Update table with predictions
         current_labels_layer.features = table_with_predictions
-
+        print('Adding predictions labels layer...')
         # Generate predicionts labels layer
         prediction_cmap = Colormap(
             get_custom_cat10based_cmap_list()).to_napari()
@@ -266,6 +329,10 @@ class Napari_Train_And_Predict_Sub_Signal_Classifier(QWidget):
         self._classifier_type_qcombobox.currentTextChanged.connect(
             self._on_classifier_type_changed)
         
+        # Connect detrend checkbox to update smooth widget visibility
+        self._detrend_qcheckbox.stateChanged.connect(
+            self._on_detrend_changed)
+        
         # Populate combobox if there are already layers
         self._reset_combobox_choices()
 
@@ -273,6 +340,9 @@ class Napari_Train_And_Predict_Sub_Signal_Classifier(QWidget):
         
         # Initialize widget visibility based on selected classifier
         self._on_classifier_type_changed(self._classifier_type_qcombobox.currentText())
+        
+        # Initialize smooth widget visibility based on detrend state
+        self._on_detrend_changed(self._detrend_qcheckbox.isChecked())
 
     def _get_labels_layer_with_features(self):
         '''Get selected labels layer'''
@@ -315,6 +385,17 @@ class Napari_Train_And_Predict_Sub_Signal_Classifier(QWidget):
             for widget, label in classifier_widgets[classifier_type]:
                 widget.setVisible(True)
                 label.setVisible(True)
+
+    def _on_detrend_changed(self, is_checked):
+        '''Update smooth widget visibility based on detrend checkbox state.
+        
+        Parameters
+        ----------
+        is_checked : bool
+            Whether the detrend checkbox is checked.
+        '''
+        self._smooth_factor_qslider.setVisible(is_checked)
+        self._smooth_factor_qlabel.setVisible(is_checked)
 
     def _reset_combobox_choices(self):
         # clear pyqt combobox choices
@@ -362,14 +443,70 @@ class Napari_Train_And_Predict_Sub_Signal_Classifier(QWidget):
         # Get classifier parameters from widgets
         n_estimators = self._n_trees_qspinbox.value()
         random_state = self._random_state_qspinbox.value()
+        if random_state < 0:
+            random_state = None
         train_size = self._training_size_qhorizontalslider.value() / 100.0  # Convert percentage to fraction
+        if train_size == 0:
+            notifications.show_warning('Training size cannot be zero.')
+            return
         detection_threshold = self._detection_threshold_qslider.value() / 100.0  # Convert to 0-1 range
         detrend = self._detrend_qcheckbox.isChecked()
         smooth = self._smooth_factor_qslider.value() / 100.0  # Convert to 0-1 range
-        merging_overlap_threshold = self.merging_overlap_threshold_qslider.value() / 100.0  # Convert to 0-1 range
+        merging_overlap_threshold = self._merging_overlap_threshold_qslider.value() / 100.0  # Convert to 0-1 range
+        stratify = self._stratify_qcheckbox.isChecked()
+
+        # Validate sufficient annotated samples for train/test split
+        annotated_mask = table[annotations_column_name] != 0
+        labels_with_annotations = np.unique(
+            table[annotated_mask][object_id_column_name].values)
+        table_annotated = table[table[object_id_column_name].isin(labels_with_annotations)].sort_values(
+            by=[object_id_column_name, x_column_name]).reset_index(drop=True)
+
+        # Extract sub-signals
+        from napari_signal_classifier._sub_signals import extract_sub_signals_by_annotations
+        sub_signal_collection = extract_sub_signals_by_annotations(
+            table_annotated, y_column_name, object_id_column_name, annotations_column_name, x_column_name)
+        n_classes = len(sub_signal_collection.categories)
+        n_annotated_sub_signals = len(sub_signal_collection.sub_signals)
+        test_size = 1.0 - train_size
+        n_train_samples = int(n_annotated_sub_signals * train_size)
+        n_test_samples = int(n_annotated_sub_signals * test_size)
         
+        if n_train_samples < n_classes:
+            notifications.show_warning(
+                f'Insufficient annotated samples for training set. '
+                f'You have {n_annotated_sub_signals} annotated sub-signals and {n_classes} classes. '
+                f'With {train_size*100:.0f}% training size, the training set would have {n_train_samples} samples, '
+                f'but needs at least {n_classes} (one per class). '
+                f'Please increase training size or annotate more samples.'
+            )
+            return
+        
+        if n_test_samples < n_classes:
+            notifications.show_warning(
+                f'Insufficient annotated samples for test set. '
+                f'You have {n_annotated_sub_signals} annotated sub-signals and {n_classes} classes. '
+                f'With {train_size*100:.0f}% training size, the test set would have {n_test_samples} samples, '
+                f'but needs at least {n_classes} (one per class). '
+                f'Please decrease training size or annotate more samples.'
+            )
+            return
+        
+        print(f'Training sub-signal classifier with {n_annotated_sub_signals} annotated sub-signals '
+              f'and {n_classes} classes...')
+        print(f'Classifier parameters: '
+              f'classifier={self._classifier_type_qcombobox.currentText()}, '
+              f'n_estimators={n_estimators}, random_state={random_state}, '
+              f'Training Percentage: {train_size*100:.0f}%, '
+              f'Training size: {n_train_samples}, '
+              f'Test size: {n_test_samples}, '
+              f'Stratify: {stratify}, '
+              f'Detection Threshold: {detection_threshold}, '
+              f'Detrend: {detrend}, Smooth: {smooth}, '
+              f'Merging Overlap Threshold: {merging_overlap_threshold}.')
+
         # Train signal classifier
-        clssifier_path = train_sub_signal_classifier(
+        classifier_file_path, train_score, test_score = train_sub_signal_classifier(
             table,
             classifier_path,
             x_column_name=x_column_name,
@@ -378,21 +515,47 @@ class Napari_Train_And_Predict_Sub_Signal_Classifier(QWidget):
             annotations_column_name=annotations_column_name,
             n_estimators=n_estimators,
             random_state=random_state,
+            stratify=stratify,
             train_size=train_size,
             detrend=detrend,
             smooth=smooth
         )
-        if clssifier_path is None:
+        if classifier_file_path is None:
             return
         
         # Get absolute path and set it to string
-        clssifier_path = Path(clssifier_path).absolute().as_posix()
-        self._classifier_path_qlineedit.setText(clssifier_path)
+        classifier_file_path = Path(classifier_file_path).absolute().as_posix()
+        self._classifier_path_qlineedit.setText(classifier_file_path)
+        print('Classifier path is:', classifier_file_path)
+        
+        # Save classifier parameters to JSON file
+        import json
+        params_dict = {
+            'classifier_type': self._classifier_type_qcombobox.currentText(),
+            'n_estimators': n_estimators,
+            'random_state': random_state,
+            'train_size': train_size,
+            'stratify': stratify,
+            'detection_threshold': detection_threshold,
+            'detrend': detrend,
+            'smooth': smooth,
+            'merging_overlap_threshold': merging_overlap_threshold,
+            'n_annotated_sub_signals': n_annotated_sub_signals,
+            'n_classes': n_classes,
+            'n_train_samples': n_train_samples,
+            'n_test_samples': n_test_samples,
+            'train_score': train_score,
+            'test_score': test_score
+        }
+        params_path = Path(classifier_file_path).with_suffix('.json')
+        with open(params_path, 'w') as f:
+            json.dump(params_dict, f, indent=2)
+        print(f'Classifier parameters saved to: {params_path}')
+        
         # Run predictions
-        print('Classifier path is:', clssifier_path)
         table_with_predictions = predict_sub_signal_labels(
             table,
-            classifier_file_path=clssifier_path,
+            classifier_file_path=classifier_file_path,
             x_column_name=x_column_name,
             y_column_name=y_column_name,
             object_id_column_name=object_id_column_name,
@@ -403,7 +566,7 @@ class Napari_Train_And_Predict_Sub_Signal_Classifier(QWidget):
         )
         # Update table with predictions
         current_labels_layer.features = table_with_predictions
-
+        print('Adding prediction Labels layer...')
         # Generate predicionts labels layer
         label_list = table.groupby(self.plotter.object_id_axis_key).first().reset_index()[
             self.plotter.object_id_axis_key].values
