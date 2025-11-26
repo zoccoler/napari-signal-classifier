@@ -118,6 +118,10 @@ def train_signal_classifier(table, classifier_path=None,
     -------
     classifier_file_path : str
         Path where the trained classifier is saved.
+    train_score : float
+        Training accuracy score.
+    test_score : float
+        Test accuracy score.
     '''
     # Get training data
     try:
@@ -156,7 +160,7 @@ def train_signal_classifier(table, classifier_path=None,
     test_score = classifier.score(signal_features_table_test, annotations_test)
     print(f"Training score: {train_score:.4f}, Test score: {test_score:.4f}")
     joblib.dump(classifier, classifier_file_path)
-    return classifier_file_path
+    return classifier_file_path, train_score, test_score
 
 
 def predict_signal_labels(table, classifier_file_path,
@@ -305,6 +309,10 @@ def train_sub_signal_classifier(table, classifier_path=None,
     -------
     classifier_file_path : str
         Path where the trained classifier is saved.
+    train_score : float
+        Training accuracy score.
+    test_score : float
+        Test accuracy score.
     '''
     from napari_signal_classifier._sub_signals import extract_sub_signals_by_annotations
     # Get training data
@@ -360,7 +368,7 @@ def train_sub_signal_classifier(table, classifier_path=None,
     test_score = classifier.score(sub_signal_features_table_test, annotations_test)
     print(f"Training score: {train_score:.4f}, Test score: {test_score:.4f}")
     joblib.dump(classifier, classifier_file_path)
-    return classifier_file_path
+    return classifier_file_path, train_score, test_score
 
 
 def generate_sub_signal_templates_from_annotations(table, x_column_name='frame', y_column_name='mean_intensity', object_id_column_name='label', annotations_column_name='Annotations', detrend=False, smooth=0.1):
