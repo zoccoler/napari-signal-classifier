@@ -4,10 +4,12 @@ except ImportError:
     __version__ = "unknown"
 
 
-from ._widget import Napari_Train_And_Predict_Signal_Classifier, Napari_Train_And_Predict_Sub_Signal_Classifier
+from ._classification import (predict_signal_labels, predict_sub_signal_labels,
+                              train_signal_classifier,
+                              train_sub_signal_classifier)
 from ._features import get_signal_features
-from ._classification import train_signal_classifier, predict_signal_labels, train_sub_signal_classifier, predict_sub_signal_labels
-
+from ._widget import (Napari_Train_And_Predict_Signal_Classifier,
+                      Napari_Train_And_Predict_Sub_Signal_Classifier)
 
 __all__ = (
     "Napari_Train_And_Predict_Signal_Classifier",

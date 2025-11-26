@@ -6,6 +6,7 @@
 [![tests](https://github.com/zoccoler/napari-signal-classifier/workflows/tests/badge.svg)](https://github.com/zoccoler/napari-signal-classifier/actions)
 [![codecov](https://codecov.io/gh/zoccoler/napari-signal-classifier/branch/main/graph/badge.svg)](https://codecov.io/gh/zoccoler/napari-signal-classifier)
 [![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-signal-classifier)](https://napari-hub.org/plugins/napari-signal-classifier)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17727926.svg)](https://doi.org/10.5281/zenodo.17727926)
 
 A napari plugin that classifies annotated signals stored in a table in the .features of a Labels layer using scikit-learn RandomForest classifier.
 

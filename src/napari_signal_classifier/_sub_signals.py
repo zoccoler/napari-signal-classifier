@@ -1,10 +1,11 @@
+from collections import defaultdict
+
 import numpy as np
 from scipy.interpolate import make_interp_spline
-from collections import defaultdict
 
 
 class SubSignal:
-    '''A class to represent a sub-signal segment extracted from a larger signal.
+    """A class to represent a sub-signal segment extracted from a larger signal.
 
     Attributes
     ----------
@@ -20,14 +21,17 @@ class SubSignal:
         The ending frame of the signal segment.
     id : int
         A unique identifier for the signal segment.
-    '''
+    """
+
     _id_counter = 0  # Class variable to keep track of the last assigned ID
 
     def __init__(self, data, category, label, start_frame, end_frame):
         self.data = data  # The signal data as a numpy array
         self.category = category  # The class/annotation of the signal
         self.label = label  # The label of the signal
-        self.start_frame = start_frame  # The starting frame of the signal segment
+        self.start_frame = (
+            start_frame  # The starting frame of the signal segment
+        )
         self.end_frame = end_frame  # The ending frame of the signal segment
         self.id = SubSignal._get_next_id()  # Assign a unique ID
 
@@ -57,8 +61,12 @@ class SubSignal:
 
         new_data = np.zeros(new_length)
         # Place the current data in the new_data array
-        new_data[self.start_frame - new_start_frame:self.end_frame +
-                 1 - new_start_frame] = self.data
+        new_data[
+            self.start_frame
+            - new_start_frame : self.end_frame
+            + 1
+            - new_start_frame
+        ] = self.data
 
         # Calculate the slice for the other data
         other_slice_start = other.start_frame - new_start_frame
@@ -70,7 +78,9 @@ class SubSignal:
         self.data = new_data
         self.start_frame = new_start_frame
         self.end_frame = new_end_frame
-        self.id = SubSignal._get_next_id()  # Assign a new unique ID to the merged result
+        self.id = (
+            SubSignal._get_next_id()
+        )  # Assign a new unique ID to the merged result
 
     def interpolate_samples(self, n_samples):
         # Resample the signal segment to a fixed number of samples using spline interpolation
@@ -81,7 +91,7 @@ class SubSignal:
 
 
 class SubSignalCollection:
-    '''A class to manage a collection of SubSignal objects.
+    """A class to manage a collection of SubSignal objects.
 
     Attributes
     ----------
@@ -91,19 +101,22 @@ class SubSignalCollection:
         A list of unique signal categories present in the collection.
     max_length_per_category : dict
         A dictionary mapping each category to the maximum length of signals in that category.
-    '''
+    """
+
     def __init__(self):
         self.sub_signals = []
         self.categories = []
         self.max_length_per_category = defaultdict(int)
 
     def add_sub_signal(self, sub_signal):
-        '''Add a SubSignal to the collection and update categories and max lengths.'''
+        """Add a SubSignal to the collection and update categories and max lengths."""
         self.sub_signals.append(sub_signal)
         if sub_signal.category not in self.categories:
             self.categories.append(sub_signal.category)
         self.max_length_per_category[sub_signal.category] = max(
-            self.max_length_per_category[sub_signal.category], len(sub_signal.data))
+            self.max_length_per_category[sub_signal.category],
+            len(sub_signal.data),
+        )
 
     def __repr__(self):
         return f"<SubSignalCollection signal categories={self.categories}, number of signals={len(self.sub_signals)}>"
@@ -112,20 +125,22 @@ class SubSignalCollection:
         self.sub_signals = sorted(self.sub_signals, key=lambda x: x.category)
 
     def merge_subsignals(self, merging_overlap_threshold):
-        '''Merge overlapping SubSignal objects in the collection.
+        """Merge overlapping SubSignal objects in the collection.
 
         Parameters
         ----------
 
         merging_overlap_threshold : float
             The overlap threshold for merging sub-signals (Jaccard index).
-        '''
+        """
         merged = []
         for subsignal in self.sub_signals:
             merged_with_existing = False
             for m in merged:
                 # and subsignal.category != m.category
-                if subsignal.label == m.label and subsignal.overlaps(m, merging_overlap_threshold):
+                if subsignal.label == m.label and subsignal.overlaps(
+                    m, merging_overlap_threshold
+                ):
                     m.merge(subsignal)
                     m.category = f"{m.category}-{subsignal.category}"
                     merged_with_existing = True
@@ -135,7 +150,9 @@ class SubSignalCollection:
         self.sub_signals = merged
 
 
-def extract_sub_signals_by_annotations_from_arrays(signal_data, annotations, labels, frames):
+def extract_sub_signals_by_annotations_from_arrays(
+    signal_data, annotations, labels, frames
+):
     """
     Extracts sub-signals from a signal data array based on annotations.
 
@@ -164,24 +181,30 @@ def extract_sub_signals_by_annotations_from_arrays(signal_data, annotations, lab
             if current_signal_category == 0:  # New signal starts
                 current_signal_category = ann
                 start_index = i
-            elif current_signal_category != ann:  # Different signal detected, save previous
+            elif (
+                current_signal_category != ann
+            ):  # Different signal detected, save previous
                 # Adjusted to include label and frame information
-                sub_signal = SubSignal(signal_data[start_index:i],
-                                       current_signal_category,
-                                       labels[start_index],
-                                       frames[start_index],
-                                       frames[i])
+                sub_signal = SubSignal(
+                    signal_data[start_index:i],
+                    current_signal_category,
+                    labels[start_index],
+                    frames[start_index],
+                    frames[i],
+                )
                 sub_signal_collection.add_sub_signal(sub_signal)
 
                 current_signal_category = ann
                 start_index = i
         else:  # Noise detected, save previous signal
             if current_signal_category > 0:
-                sub_signal = SubSignal(signal_data[start_index:i],
-                                       current_signal_category,
-                                       labels[start_index],
-                                       frames[start_index],
-                                       frames[i])
+                sub_signal = SubSignal(
+                    signal_data[start_index:i],
+                    current_signal_category,
+                    labels[start_index],
+                    frames[start_index],
+                    frames[i],
+                )
                 sub_signal_collection.add_sub_signal(sub_signal)
 
                 current_signal_category = 0
@@ -189,17 +212,25 @@ def extract_sub_signals_by_annotations_from_arrays(signal_data, annotations, lab
 
     # Handle the case where the last signal goes until the end
     if current_signal_category > 0:
-        sub_signal = SubSignal(signal_data[start_index:],
-                               current_signal_category,
-                               labels[start_index],
-                               frames[start_index],
-                               frames[-1])
+        sub_signal = SubSignal(
+            signal_data[start_index:],
+            current_signal_category,
+            labels[start_index],
+            frames[start_index],
+            frames[-1],
+        )
         sub_signal_collection.add_sub_signal(sub_signal)
 
     return sub_signal_collection
 
 
-def extract_sub_signals_by_annotations(table, column_signal_value, column_signal_id, column_signal_annotation, column_frame):
+def extract_sub_signals_by_annotations(
+    table,
+    column_signal_value,
+    column_signal_id,
+    column_signal_annotation,
+    column_frame,
+):
     """
     Extracts sub-signals from a signal data array based on annotations.
 
@@ -225,4 +256,6 @@ def extract_sub_signals_by_annotations(table, column_signal_value, column_signal
     annotations = table[column_signal_annotation].values
     labels = table[column_signal_id].values
     frames = table[column_frame].values
-    return extract_sub_signals_by_annotations_from_arrays(signal_data, annotations, labels, frames)
+    return extract_sub_signals_by_annotations_from_arrays(
+        signal_data, annotations, labels, frames
+    )
