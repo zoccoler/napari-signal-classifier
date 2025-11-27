@@ -24,7 +24,7 @@ After having annotated signals in the `.features` of a `Labels` layer (check the
 
 Open the `Train and Predict Signal Classifier` widget from the napari menus in `Layers > Classify > Signal / Time-series > Train and Predict Signal Classifier`. The widget will appear in the right panel of napari (see image below). It will also cast the `Signal Selector and Annotator` widget from napari-signal-selector to display the signals (remember to update the comboboxes to display the signals).
 
-![signal_classifier_widget](signal_classifier_widget.png)
+![signal_classifier_widget](https://github.com/zoccoler/napari-signal-classifier/raw/main/images/signal_classifier_widget.png)
 
 1. Choose the right `Labels` layer in the `Labels Layer with Signals Table` field.
 2. Choose the classifier (currently only RandomForest is implemented).
@@ -47,7 +47,7 @@ After having annotated signals in the `.features` of a `Labels` layer (check the
 
 Open the `Train and Predict Sub-Signal Classifier` widget from the napari menus in `Layers > Classify > Signal / Time-series > Train and Predict Sub-Signal Classifier`. The widget will appear in the right panel of napari. It will also cast the `Signal Selector and Annotator` widget from napari-signal-selector to display the signals (remember to update the comboboxes to display the signals).
 
-![sub_signal_classifier_widget](sub_signal_classifier_widget.png)
+![sub_signal_classifier_widget](https://github.com/zoccoler/napari-signal-classifier/raw/main/images/sub_signal_classifier_widget.png)
 
 Choose the same parameters as the [Napari Signal Classifier](#napari-signal-classifier), plus a few additional parameters related to sub-signal detection and merging: 
 1. Choose the "Detection Threshold" for the template matching algorithm (default 0.8, ranging from 0 to 1). This can be seen as a sensitivity to detection parameter. Sub-signals will be disconsidered if peaks in the cross-correlation with template are lower than this value.
