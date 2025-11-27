@@ -8,11 +8,11 @@
 [![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-signal-classifier)](https://napari-hub.org/plugins/napari-signal-classifier)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17727926.svg)](https://doi.org/10.5281/zenodo.17727926)
 
-A napari plugin that classifies annotated signals stored in a table in the .features of a Labels layer using scikit-learn RandomForest classifier.
+A napari plugin that classifies annotated signals stored in a table in the `.features` of a `Labels` layer using a classifier.
 
-It also provides a sub-signal classifier that can be used to classify sub-signals inside time-series. First it detects sub-sginals with a template matching algorithm and then classifies them also using scikit-learn RandomForest classifier.
+It also provides a sub-signal classifier that can be used to classify local patterns inside longer time-series. First it detects sub-sginals with a template matching algorithm based on annotated sub-signals. Then, it trains and run predictions with a chosen classifier. At the moment, only  [scikit-learn RandomForest classifier](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html) option is implemented.
 
-This plugin employs and works in synergy with the [napari-signal-selector plugin](https://github.com/zoccoler/napari-signal-selector?tab=readme-ov-file#napari-signal-selector). Take a look at it to see how to annotate signals in a plotter linked to a napari Labels layer with the .features attribute.
+This plugin employs and works in synergy with the [napari-signal-selector plugin](https://github.com/zoccoler/napari-signal-selector?tab=readme-ov-file#napari-signal-selector). Take a look at it to see how to annotate signals in a plotter linked to a napari `Labels` layer with signals table stored in the `.features` attribute.
 
 [Jump to Intallation](#installation)
 
@@ -20,17 +20,24 @@ This plugin employs and works in synergy with the [napari-signal-selector plugin
 
 ## Napari Signal Classifier
 
-After having annotated signals in the .features of a Labels layer (check the [napari-signal-selector plugin](https://github.com/zoccoler/napari-signal-selector?tab=readme-ov-file#napari-signal-selector)), you can train a signal classifier and predict the labels of unannotated signals.
+After having annotated signals in the `.features` of a `Labels` layer (check the [napari-signal-selector plugin](https://github.com/zoccoler/napari-signal-selector?tab=readme-ov-file#napari-signal-selector)), you can train a signal classifier and predict the labels of unannotated signals.
 
-Open the "Signal Classifier Widget" from the napari in "Layers > Classify > Signal / Time-series > Train and Predict Signal Classifier". The widget will appear in the right panel of napari.
+Open the `Train and Predict Signal Classifier` widget from the napari menus in `Layers > Classify > Signal / Time-series > Train and Predict Signal Classifier`. The widget will appear in the right panel of napari (see image below). It will also cast the `Signal Selector and Annotator` widget from napari-signal-selector to display the signals (remember to update the comboboxes to display the signals).
 
-Choose the Labels layer containing the annotated signals to classify (the annotations should have been previsouly done with the napari-signal-selector plugin). Choose the classifier (currently only RandomForest is implemented). Optionally provide a path to a folder where to save the trained model, select the number of trees (estimators) of the RandomForest, the random state for reproducibility, and the training percentage (the percentage of annotated signals that will be used for training, the rest will be used for testing the model and showing the accuracy, intially 80%). Finally click on "Train and Predict".
+![signal_classifier_widget](signal_classifier_widget.png)
+1. Choose the right `Labels` layer in the `Labels Layer with Signals Table` field.
+2. Choose the classifier (currently only RandomForest is implemented).
+3. Optionally provide a path to a folder where to save the trained model. The model file name is unique and automatically generated. If you provide here a link to a `.pkl` file previously trained with this plugin, it will just run predictions using the provided classifier.
+4. Select the number of trees (estimators) of the RandomForest.
+5. Choose a number for the random state for reproducibility. Choosing `-1` will pass `None` to `random_state` of scikit-learn's [](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html) and [RamdomForest](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html), meaning the outcome will not be deterministic.
+6. Set the training percentage (the percentage of annotated signals that will be used for training, the rest will be used for testing the model and showing the accuracy) The initial value is 70%.
+7. Click on "Train and Predict".
 
-Several signal features will be calculated automatically from the signals in the .features of the Labels layer, a RandomForest classifier will be trained on the annotated signals, and the labels of unannotated signals will be predicted. The predicted labels will be stored in a new column in the .features of the Labels layer called "Predictions". The accuracy of the model on the test set will be printed in the napari console.
+Be patient as several signal features will be calculated automatically from the signals and the classifier will be trained on the annotated signals. Also, the labels of unannotated signals will be predicted. The predicted labels will be stored in a new column, called "Predictions", in the `.features` of the same `Labels` layer. All parameters and the model's accuracy on the train and test sets will be printed in the napari console and saved as a `.json` file in the same place and with the same name as the trained classifier.
 
 ![demo](https://github.com/zoccoler/napari-signal-classifier/raw/main/images/signal_classifier_demo.gif)
 
-The resulting .features table can be viewed via the native napari features table widget ("Layers > Visualize > Features Table Widget") and exported to a CSV file from there for further analysis.
+The resulting `.features` table can be viewed via the native napari features table widget (`Layers > Visualize > Features Table Widget`) and exported to a CSV file from there for downstream analysis.
 
 ## Napari Sub-Signal Classifier
 
