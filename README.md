@@ -58,11 +58,22 @@ https://napari.org/stable/plugins/index.html
 
 ## Installation
 
-You can install `napari-signal-classifier` via [pip]:
+You can install `napari-signal-classifier` via [pip]. Follow these steps from a terminal.
+
+We recommend using `mamba-forge` whenever possible. Click [here](https://github.com/conda-forge/miniforge#mambaforge) to choose the right download option for your OS.
+**If you do not use `mamba-forge`, replace the `mamba` term whenever you see it below with `conda`.**
+
+Create a conda environment :
+
+    mamba create -n nsc-env napari pyqt python=3.12
+    
+Activate the environment :
+
+    mamba activate nsc-env
+
+Install `napari-signal-classifier` via [pip] :
 
     pip install napari-signal-classifier
-
-
 
 To install latest development version :
 
