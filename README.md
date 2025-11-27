@@ -62,7 +62,7 @@ https://napari.org/stable/plugins/index.html
 
 You can install `napari-signal-classifier` via [pip]. Follow these steps from a terminal.
 
-We recommend using `Miniforge` whenever possible. Click [here]([https://github.com/conda-forge/miniforge#mambaforge](https://conda-forge.org/download/)) to choose the right download option for your OS.
+We recommend using `Miniforge` whenever possible. Click [here](https://conda-forge.org/download/) to choose the right download option for your OS.
 **If you do not use `Miniforge`, you might need to replace the `mamba` term whenever you see it below with `conda`.**
 
 Create a conda environment :
