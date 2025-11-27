@@ -14,6 +14,8 @@ It also provides a sub-signal classifier that can be used to classify sub-signal
 
 This plugin employs and works in synergy with the [napari-signal-selector plugin](https://github.com/zoccoler/napari-signal-selector?tab=readme-ov-file#napari-signal-selector). Take a look at it to see how to annotate signals in a plotter linked to a napari Labels layer with the .features attribute.
 
+[Jump to Intallation](#installation)
+
 # Usage
 
 ## Napari Signal Classifier
